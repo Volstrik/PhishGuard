@@ -1,0 +1,153 @@
+{% extends "base.html" %}
+{% block title %}Reports{% endblock %}
+{% block page_title %}Reports{% endblock %}
+
+{% block content %}
+
+<div class="page-hdr">
+    <div>
+        <h2>Security Reports</h2>
+        <p>In-depth analysis and summary of all scanned URLs.</p>
+    </div>
+    <button class="btn-primary" onclick="window.print()">
+        <i class="fas fa-print"></i> Print Report
+    </button>
+</div>
+
+<!-- Stats -->
+<div class="reports-stats">
+    <div class="stat-card glass">
+        <div class="stat-icon blue"><i class="fas fa-chart-simple"></i></div>
+        <div>
+            <p class="stat-label">Total Scans</p>
+            <p class="stat-value">{{ stats.total|default(0) }}</p>
+        </div>
+    </div>
+    <div class="stat-card glass">
+        <div class="stat-icon green"><i class="fas fa-shield-halved"></i></div>
+        <div>
+            <p class="stat-label">Safe URLs</p>
+            <p class="stat-value">{{ stats.safe|default(0) }}</p>
+            <p class="stat-change">{{ ((stats.safe/stats.total)*100)|round(1) if stats.total>0 else 0 }}%</p>
+        </div>
+    </div>
+    <div class="stat-card glass">
+        <div class="stat-icon yellow"><i class="fas fa-triangle-exclamation"></i></div>
+        <div>
+            <p class="stat-label">Suspicious</p>
+            <p class="stat-value">{{ stats.suspicious|default(0) }}</p>
+            <p class="stat-change">{{ ((stats.suspicious/stats.total)*100)|round(1) if stats.total>0 else 0 }}%</p>
+        </div>
+    </div>
+    <div class="stat-card glass">
+        <div class="stat-icon orange"><i class="fas fa-circle-exclamation"></i></div>
+        <div>
+            <p class="stat-label">High Risk</p>
+            <p class="stat-value">{{ stats.high_risk|default(0) }}</p>
+            <p class="stat-change">{{ ((stats.high_risk/stats.total)*100)|round(1) if stats.total>0 else 0 }}%</p>
+        </div>
+    </div>
+    <div class="stat-card glass">
+        <div class="stat-icon red"><i class="fas fa-skull-crossbones"></i></div>
+        <div>
+            <p class="stat-label">Malicious</p>
+            <p class="stat-value red-text">{{ stats.malicious|default(0) }}</p>
+            <p class="stat-change">{{ ((stats.malicious/stats.total)*100)|round(1) if stats.total>0 else 0 }}%</p>
+        </div>
+    </div>
+    <div class="stat-card glass">
+        <div class="stat-icon teal"><i class="fas fa-gauge-high"></i></div>
+        <div>
+            <p class="stat-label">Avg Score</p>
+            <p class="stat-value">{{ stats.avg_score|default(0) }} / 100</p>
+        </div>
+    </div>
+</div>
+
+<!-- Charts -->
+<div class="reports-charts">
+    <div class="chart-card glass">
+        <h3 class="card-title">Threat Distribution</h3>
+        <div class="rep-donut-wrap"><canvas id="reportDonut"></canvas></div>
+        <div class="donut-legend">
+            <div class="legend-row"><span class="dot green"></span><span>Safe</span><span class="legend-pct" style="margin-left:auto">{{ stats.safe }}</span></div>
+            <div class="legend-row"><span class="dot yellow"></span><span>Suspicious</span><span class="legend-pct" style="margin-left:auto">{{ stats.suspicious }}</span></div>
+            <div class="legend-row"><span class="dot orange"></span><span>High Risk</span><span class="legend-pct" style="margin-left:auto">{{ stats.high_risk }}</span></div>
+            <div class="legend-row"><span class="dot red"></span><span>Malicious</span><span class="legend-pct" style="margin-left:auto">{{ stats.malicious }}</span></div>
+        </div>
+    </div>
+    <div class="chart-card glass">
+        <h3 class="card-title">Risk Level Breakdown</h3>
+        <div class="rep-bar-wrap"><canvas id="reportBar"></canvas></div>
+    </div>
+</div>
+
+<!-- Table -->
+<div class="table-card glass">
+    <div class="card-title-row">
+        <h3 class="card-title">All Scan Records</h3>
+        <span class="card-sub">{{ scans|length }} total records</span>
+    </div>
+    <table class="history-tbl">
+        <thead>
+            <tr>
+                <th>#</th><th>URL</th><th>Score</th><th>Risk Level</th>
+                <th><i class="fas fa-circle-check green-text"></i> Safe</th>
+                <th><i class="fas fa-triangle-exclamation yellow-text"></i> Suspicious</th>
+                <th><i class="fas fa-skull-crossbones red-text"></i> Malicious</th>
+                <th>Scanned At</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for scan in scans %}
+            <tr>
+                <td>{{ loop.index }}</td>
+                <td class="url-cell" title="{{ scan.url }}">{{ scan.url|truncate(40) }}</td>
+                <td><div class="score-pill {{ scan.risk_level|lower|replace(' ','-') }}">{{ scan.score }}</div></td>
+                <td><span class="risk-badge {{ scan.risk_level|lower|replace(' ','-') }}">{{ scan.risk_level }}</span></td>
+                <td class="green-text">{{ scan.safe_count }}</td>
+                <td class="yellow-text">{{ scan.suspicious_count }}</td>
+                <td class="red-text">{{ scan.malicious_count }}</td>
+                <td class="time-cell">{{ scan.scanned_at }}</td>
+            </tr>
+            {% else %}
+            <tr><td colspan="8" class="empty-row"><i class="fas fa-inbox"></i><p>No records yet. <a href="{{ url_for('scanner') }}">Run your first scan</a></p></td></tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+
+<!-- Recommendations -->
+<div class="rec-card glass">
+    <h3><i class="fas fa-lightbulb"></i> Security Recommendations</h3>
+    <div class="rec-grid">
+        <div class="rec-item">
+            <i class="fas fa-shield-halved green-text"></i>
+            <div><h4>Always Verify Links</h4><p>Before clicking any link in emails or messages, scan it with PhishGuard first.</p></div>
+        </div>
+        <div class="rec-item">
+            <i class="fas fa-lock yellow-text"></i>
+            <div><h4>Check for HTTPS</h4><p>Legitimate websites always use HTTPS. Avoid HTTP-only sites for sensitive actions.</p></div>
+        </div>
+        <div class="rec-item">
+            <i class="fas fa-eye red-text"></i>
+            <div><h4>Watch for Lookalikes</h4><p>Phishing sites often mimic real sites with slight domain name changes.</p></div>
+        </div>
+        <div class="rec-item">
+            <i class="fas fa-rotate teal-text"></i>
+            <div><h4>Scan Regularly</h4><p>Make URL scanning a habit — threat databases update constantly.</p></div>
+        </div>
+    </div>
+</div>
+
+<script>
+const reportDonutData = {
+    safe: {{ stats.safe }}, suspicious: {{ stats.suspicious }},
+    high_risk: {{ stats.high_risk }}, malicious: {{ stats.malicious }}
+};
+</script>
+{% endblock %}
+
+{% block extra_scripts %}
+<script src="{{ url_for('static', filename='js/charts.js') }}"></script>
+{% endblock %}

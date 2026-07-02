@@ -1,0 +1,116 @@
+{% extends "base.html" %}
+{% block title %}History{% endblock %}
+{% block page_title %}Scan History{% endblock %}
+
+{% block content %}
+
+<div class="page-hdr">
+    <div>
+        <h2>Scan History</h2>
+        <p>All previously scanned URLs and their threat analysis results.</p>
+    </div>
+    <a href="{{ url_for('scanner') }}" class="btn-primary">
+        <i class="fas fa-plus"></i> New Scan
+    </a>
+</div>
+
+<div class="filter-bar">
+    <div class="filter-search">
+        <i class="fas fa-magnifying-glass"></i>
+        <input type="text" id="searchInput" placeholder="Search by URL..." onkeyup="filterTable()"/>
+    </div>
+    <div class="filter-select">
+        <select id="riskFilter" onchange="filterTable()">
+            <option value="all">All Risk Levels</option>
+            <option value="Safe">Safe</option>
+            <option value="Suspicious">Suspicious</option>
+            <option value="High Risk">High Risk</option>
+            <option value="Malicious">Malicious</option>
+        </select>
+    </div>
+    <div class="filter-select">
+        <select id="sortFilter" onchange="filterTable()">
+            <option value="newest">Newest First</option>
+            <option value="oldest">Oldest First</option>
+            <option value="highest">Highest Score</option>
+            <option value="lowest">Lowest Score</option>
+        </select>
+    </div>
+    <div class="filter-count">Showing <span id="resultCount">{{ scans|length }}</span> results</div>
+</div>
+
+<div class="table-card glass">
+    <table class="history-tbl" id="historyTable">
+        <thead>
+            <tr>
+                <th>#</th>
+                <th>URL</th>
+                <th>Score</th>
+                <th>Risk Level</th>
+                <th><i class="fas fa-circle-check green-text"></i> Safe</th>
+                <th><i class="fas fa-triangle-exclamation yellow-text"></i> Suspicious</th>
+                <th><i class="fas fa-skull-crossbones red-text"></i> Malicious</th>
+                <th>Scanned At</th>
+            </tr>
+        </thead>
+        <tbody id="historyBody">
+            {% for scan in scans %}
+            <tr data-url="{{ scan.url }}" data-risk="{{ scan.risk_level }}"
+                data-score="{{ scan.score }}" data-time="{{ scan.scanned_at }}">
+                <td>{{ loop.index }}</td>
+                <td class="url-cell" title="{{ scan.url }}">{{ scan.url|truncate(40) }}</td>
+                <td><div class="score-pill {{ scan.risk_level|lower|replace(' ','-') }}">{{ scan.score }}</div></td>
+                <td><span class="risk-badge {{ scan.risk_level|lower|replace(' ','-') }}">{{ scan.risk_level }}</span></td>
+                <td class="green-text">{{ scan.safe_count }}</td>
+                <td class="yellow-text">{{ scan.suspicious_count }}</td>
+                <td class="red-text">{{ scan.malicious_count }}</td>
+                <td class="time-cell">{{ scan.scanned_at }}</td>
+            </tr>
+            {% else %}
+            <tr>
+                <td colspan="8" class="empty-row">
+                    <i class="fas fa-inbox"></i>
+                    <p>No scans yet. <a href="{{ url_for('scanner') }}">Run your first scan</a></p>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+const allRows = Array.from(document.querySelectorAll("#historyBody tr[data-url]"));
+
+function filterTable() {
+    const search = document.getElementById("searchInput").value.toLowerCase();
+    const risk   = document.getElementById("riskFilter").value;
+    const sort   = document.getElementById("sortFilter").value;
+
+    let filtered = allRows.filter(r => {
+        const matchUrl  = r.dataset.url.toLowerCase().includes(search);
+        const matchRisk = risk === "all" || r.dataset.risk === risk;
+        return matchUrl && matchRisk;
+    });
+
+    filtered.sort((a,b) => {
+        if (sort === "newest")  return b.dataset.time.localeCompare(a.dataset.time);
+        if (sort === "oldest")  return a.dataset.time.localeCompare(b.dataset.time);
+        if (sort === "highest") return b.dataset.score - a.dataset.score;
+        if (sort === "lowest")  return a.dataset.score - b.dataset.score;
+    });
+
+    const tbody = document.getElementById("historyBody");
+    tbody.innerHTML = "";
+
+    if (filtered.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="8" class="empty-row"><i class="fas fa-search"></i><p>No results match your filters.</p></td></tr>`;
+    } else {
+        filtered.forEach((r,i) => { r.cells[0].textContent = i+1; tbody.appendChild(r); });
+    }
+    document.getElementById("resultCount").textContent = filtered.length;
+}
+</script>
+{% endblock %}

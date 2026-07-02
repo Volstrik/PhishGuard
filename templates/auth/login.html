@@ -1,0 +1,654 @@
+<!-- templates/auth/login.html -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PhishGuard – Login</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&family=Rajdhani:wght@400;600&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg:        #060d0a;
+            --card:      rgba(13,26,18,0.92);
+            --accent:    #00ff88;
+            --teal:      #00ffcc;
+            --red:       #ff4757;
+            --yellow:    #ffd93d;
+            --border:    rgba(0,255,136,0.2);
+            --muted:     #3d6b50;
+            --text:      #e0f5eb;
+            --secondary: #7ab893;
+        }
+
+        * { margin:0; padding:0; box-sizing:border-box; }
+
+        body {
+            background: var(--bg);
+            font-family: 'Rajdhani', sans-serif;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+        }
+
+        /* ── CANVAS BACKGROUND ── */
+        #bgCanvas {
+            position: fixed;
+            inset: 0;
+            z-index: 0;
+            pointer-events: none;
+        }
+
+        /* ── LAYOUT ── */
+        .auth-wrapper {
+            position: relative;
+            z-index: 10;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            width: 100%;
+            padding: 24px;
+        }
+
+        .auth-card {
+            width: 100%;
+            max-width: 440px;
+            background: var(--card);
+            border: 1px solid var(--border);
+            border-radius: 14px;
+            padding: 38px 36px;
+            -webkit-backdrop-filter: blur(12px);
+            backdrop-filter: blur(12px);
+            box-shadow:
+                0 0 0 1px rgba(0,255,136,0.1),
+                0 0 40px rgba(0,255,136,0.08),
+                inset 0 0 40px rgba(0,255,136,0.03);
+        }
+
+        /* ── LOGO ── */
+        .auth-logo {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            margin-bottom: 28px;
+        }
+
+        .auth-logo svg {
+            width: 72px;
+            height: 72px;
+            margin-bottom: 12px;
+            animation: logoPulse 3s ease-in-out infinite;
+            filter: drop-shadow(0 0 8px rgba(0,255,136,0.7))
+                    drop-shadow(0 0 20px rgba(0,255,200,0.4));
+        }
+
+        @keyframes logoPulse {
+            0%,100% { filter: drop-shadow(0 0 6px rgba(0,255,136,0.6)) drop-shadow(0 0 16px rgba(0,255,200,0.3)); }
+            50%      { filter: drop-shadow(0 0 14px rgba(0,255,136,1)) drop-shadow(0 0 30px rgba(0,255,200,0.7)); }
+        }
+
+        .auth-logo h1 {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 22px;
+            color: var(--accent);
+            text-shadow: 0 0 16px rgba(0,255,136,0.5);
+            letter-spacing: 1px;
+        }
+
+        .auth-logo p {
+            font-size: 9px;
+            letter-spacing: 4px;
+            color: var(--muted);
+            margin-top: 3px;
+        }
+
+        /* ── TITLE ── */
+        .auth-title {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 14px;
+            color: var(--text);
+            margin-bottom: 6px;
+            letter-spacing: 0.5px;
+        }
+
+        .auth-subtitle {
+            font-size: 12px;
+            color: var(--secondary);
+            margin-bottom: 24px;
+        }
+
+        /* ── FLASH MESSAGES ── */
+        .flash {
+            padding: 10px 14px;
+            border-radius: 7px;
+            font-size: 12px;
+            margin-bottom: 16px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .flash.error   { background: rgba(255,71,87,0.12);  border: 1px solid rgba(255,71,87,0.35);  color: var(--red); }
+        .flash.success { background: rgba(0,255,136,0.1);   border: 1px solid rgba(0,255,136,0.3);   color: var(--accent); }
+        .flash.info    { background: rgba(0,212,170,0.1);   border: 1px solid rgba(0,212,170,0.3);   color: #00d4aa; }
+
+        /* ── FORM ── */
+        .form-group {
+            margin-bottom: 16px;
+        }
+
+        .form-label {
+            display: block;
+            font-size: 11px;
+            color: var(--secondary);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 7px;
+        }
+
+        .input-wrap {
+            position: relative;
+        }
+
+        .input-wrap i {
+            position: absolute;
+            left: 13px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: var(--muted);
+            font-size: 13px;
+            pointer-events: none;
+        }
+
+        .input-wrap input {
+            width: 100%;
+            background: rgba(0,0,0,0.35);
+            border: 1px solid rgba(0,255,136,0.18);
+            border-radius: 8px;
+            padding: 12px 12px 12px 38px;
+            color: var(--text);
+            font-family: 'Rajdhani', sans-serif;
+            font-size: 14px;
+            outline: none;
+            transition: all 0.3s ease;
+        }
+
+        .input-wrap input:focus {
+            border-color: var(--accent);
+            box-shadow: 0 0 0 1px rgba(0,255,136,0.4),
+                        0 0 16px rgba(0,255,136,0.15);
+        }
+
+        .input-wrap input::placeholder { color: var(--muted); }
+
+        /* Eye toggle for password */
+        .eye-toggle {
+            position: absolute;
+            right: 13px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: var(--muted);
+            cursor: pointer;
+            font-size: 13px;
+            transition: color 0.2s;
+        }
+
+        .eye-toggle:hover { color: var(--accent); }
+
+        /* ── REMEMBER + FORGOT ── */
+        .form-row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 20px;
+        }
+
+        .remember-label {
+            display: flex;
+            align-items: center;
+            gap: 7px;
+            font-size: 12px;
+            color: var(--secondary);
+            cursor: pointer;
+        }
+
+        .remember-label input[type="checkbox"] {
+            accent-color: var(--accent);
+            width: 14px;
+            height: 14px;
+        }
+
+        .forgot-link {
+            font-size: 12px;
+            color: var(--accent);
+            text-decoration: none;
+            transition: text-shadow 0.2s;
+        }
+
+        .forgot-link:hover {
+            text-shadow: 0 0 8px rgba(0,255,136,0.6);
+        }
+
+        /* ── ADMIN KEY FIELD (hidden by default) ── */
+        .admin-key-section {
+            display: none;
+            margin-bottom: 16px;
+            padding: 14px;
+            background: rgba(255,71,87,0.06);
+            border: 1px solid rgba(255,71,87,0.25);
+            border-radius: 8px;
+            animation: adminReveal 0.4s ease;
+        }
+
+        @keyframes adminReveal {
+            from { opacity: 0; transform: translateY(-8px); }
+            to   { opacity: 1; transform: translateY(0); }
+        }
+
+        .admin-key-section .admin-warn {
+            display: flex;
+            align-items: center;
+            gap: 7px;
+            font-size: 10px;
+            color: var(--red);
+            font-family: 'Orbitron', sans-serif;
+            letter-spacing: 0.5px;
+            margin-bottom: 10px;
+        }
+
+        .admin-key-section .input-wrap input {
+            border-color: rgba(255,71,87,0.35);
+            font-family: 'Orbitron', monospace;
+            letter-spacing: 2px;
+        }
+
+        .admin-key-section .input-wrap input:focus {
+            border-color: var(--red);
+            box-shadow: 0 0 0 1px rgba(255,71,87,0.4),
+                        0 0 16px rgba(255,71,87,0.12);
+        }
+
+        /* ── SUBMIT BUTTON ── */
+        .btn-login {
+            width: 100%;
+            background: var(--accent);
+            color: #060d0a;
+            border: none;
+            border-radius: 8px;
+            padding: 13px;
+            font-family: 'Orbitron', sans-serif;
+            font-size: 13px;
+            font-weight: 700;
+            cursor: pointer;
+            letter-spacing: 1px;
+            transition: all 0.3s ease;
+            animation: btnPulse 2.5s ease-in-out infinite;
+        }
+
+        @keyframes btnPulse {
+            0%,100% { box-shadow: 0 0 12px rgba(0,255,136,0.4); }
+            50%      { box-shadow: 0 0 28px rgba(0,255,136,0.75), 0 0 8px rgba(0,255,136,0.9); }
+        }
+
+        .btn-login:hover {
+            background: var(--teal);
+            box-shadow: 0 0 32px rgba(0,255,136,0.6) !important;
+            transform: translateY(-1px);
+        }
+
+        /* Admin mode button */
+        .btn-login.admin-mode {
+            background: var(--red);
+            animation: adminBtnPulse 1.8s ease-in-out infinite;
+        }
+
+        @keyframes adminBtnPulse {
+            0%,100% { box-shadow: 0 0 12px rgba(255,71,87,0.5); }
+            50%      { box-shadow: 0 0 28px rgba(255,71,87,0.9); }
+        }
+
+        .btn-login.admin-mode:hover {
+            background: #ff2233;
+            box-shadow: 0 0 32px rgba(255,71,87,0.7) !important;
+        }
+
+        /* ── DIVIDER ── */
+        .auth-divider {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin: 20px 0;
+        }
+
+        .auth-divider::before,
+        .auth-divider::after {
+            content: '';
+            flex: 1;
+            height: 1px;
+            background: rgba(0,255,136,0.12);
+        }
+
+        .auth-divider span {
+            font-size: 10px;
+            color: var(--muted);
+            letter-spacing: 1px;
+        }
+
+        /* ── REGISTER LINK ── */
+        .auth-footer {
+            text-align: center;
+            font-size: 12px;
+            color: var(--secondary);
+            margin-top: 20px;
+        }
+
+        .auth-footer a {
+            color: var(--accent);
+            text-decoration: none;
+            font-weight: 600;
+            transition: text-shadow 0.2s;
+        }
+
+        .auth-footer a:hover {
+            text-shadow: 0 0 8px rgba(0,255,136,0.6);
+        }
+
+        /* ── ADMIN HINT ── */
+        .admin-hint {
+            text-align: center;
+            font-size: 10px;
+            color: var(--muted);
+            margin-top: 14px;
+            opacity: 0.6;
+        }
+
+        /* ── HUD CORNERS ON CARD ── */
+        .auth-card { position: relative; }
+
+        .auth-card::before,
+        .auth-card::after {
+            content: '';
+            position: absolute;
+            width: 16px;
+            height: 16px;
+        }
+
+        .auth-card::before {
+            top: -1px; left: -1px;
+            border-top: 2px solid var(--teal);
+            border-left: 2px solid var(--teal);
+            border-radius: 3px 0 0 0;
+        }
+
+        .auth-card::after {
+            bottom: -1px; right: -1px;
+            border-bottom: 2px solid var(--teal);
+            border-right: 2px solid var(--teal);
+            border-radius: 0 0 3px 0;
+        }
+
+        /* ── SCROLLBAR ── */
+        ::-webkit-scrollbar { width: 4px; }
+        ::-webkit-scrollbar-track { background: var(--bg); }
+        ::-webkit-scrollbar-thumb { background: rgba(0,255,136,0.3); border-radius: 2px; }
+    </style>
+</head>
+<body>
+
+<canvas id="bgCanvas"></canvas>
+
+<div class="auth-wrapper">
+    <div class="auth-card">
+
+        <!-- Logo -->
+        <div class="auth-logo">
+            <svg viewBox="0 0 54 54" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <defs>
+                    <filter id="sGlow" x="-50%" y="-50%" width="200%" height="200%">
+                        <feGaussianBlur stdDeviation="2.5" result="b"/>
+                        <feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge>
+                    </filter>
+                    <linearGradient id="sGrad" x1="27" y1="2" x2="27" y2="52" gradientUnits="userSpaceOnUse">
+                        <stop offset="0%"   stop-color="#00ffcc"/>
+                        <stop offset="100%" stop-color="#00aa55"/>
+                    </linearGradient>
+                    <radialGradient id="sBg" cx="50%" cy="40%" r="60%">
+                        <stop offset="0%"   stop-color="#003322"/>
+                        <stop offset="100%" stop-color="#001510"/>
+                    </radialGradient>
+                </defs>
+                <circle cx="27" cy="27" r="25.5" fill="rgba(0,255,136,0.05)"/>
+                <circle cx="27" cy="27" r="24.5" stroke="rgba(0,255,136,0.15)"
+                        stroke-width="0.6" stroke-dasharray="3 4" fill="none"/>
+                <line x1="7"  y1="5"  x2="11" y2="5"  stroke="rgba(0,255,200,0.55)" stroke-width="0.9"/>
+                <line x1="7"  y1="5"  x2="7"  y2="9"  stroke="rgba(0,255,200,0.55)" stroke-width="0.9"/>
+                <line x1="47" y1="5"  x2="43" y2="5"  stroke="rgba(0,255,200,0.55)" stroke-width="0.9"/>
+                <line x1="47" y1="5"  x2="47" y2="9"  stroke="rgba(0,255,200,0.55)" stroke-width="0.9"/>
+                <path d="M27 4 L47 10 L47 26 C47 38 38 46 27 49.5 C16 46 7 38 7 26 L7 10 Z"
+                      fill="url(#sBg)" stroke="url(#sGrad)" stroke-width="1.6"
+                      filter="url(#sGlow)"/>
+                <path d="M27 8 L43 13.5 L43 26 C43 35.5 35.5 42.5 27 45.5 C18.5 42.5 11 35.5 11 26 L11 13.5 Z"
+                      fill="rgba(0,40,24,0.4)" stroke="rgba(0,255,180,0.28)" stroke-width="0.8"/>
+                <rect x="18.5" y="30" width="17" height="13" rx="2.5"
+                      fill="rgba(0,255,136,0.14)" stroke="#00ffcc" stroke-width="1.3"
+                      filter="url(#sGlow)"/>
+                <path d="M21 30 L21 26.5 C21 22.5 33 22.5 33 26.5 L33 30"
+                      fill="none" stroke="#00ffcc" stroke-width="1.5"
+                      stroke-linecap="round" filter="url(#sGlow)"/>
+                <circle cx="27" cy="35.5" r="2.2" fill="rgba(0,10,6,0.95)"
+                        stroke="rgba(0,255,180,0.55)" stroke-width="0.8"/>
+                <rect x="26.2" y="36.8" width="1.6" height="3.5" rx="0.8"
+                      fill="rgba(0,10,6,0.95)"/>
+            </svg>
+            <h1>PhishGuard</h1>
+            <p>URL ANALYZER</p>
+        </div>
+
+        <h2 class="auth-title">Access Terminal</h2>
+        <p class="auth-subtitle">Enter your credentials to continue</p>
+
+        <!-- Flash messages -->
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% for category, message in messages %}
+            <div class="flash {{ category }}">
+                <i class="fas fa-{% if category == 'error' %}triangle-exclamation{% elif category == 'success' %}circle-check{% else %}circle-info{% endif %}"></i>
+                {{ message }}
+            </div>
+            {% endfor %}
+        {% endwith %}
+
+        <!-- Login Form -->
+        <form method="POST" action="{{ url_for('login') }}" id="loginForm">
+
+            <div class="form-group">
+                <label class="form-label">Username</label>
+                <div class="input-wrap">
+                    <i class="fas fa-user"></i>
+                    <input type="text" name="username" id="username"
+                           placeholder="Enter your username"
+                           autocomplete="username" required/>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label class="form-label">Password</label>
+                <div class="input-wrap">
+                    <i class="fas fa-lock"></i>
+                    <input type="password" name="password" id="password"
+                           placeholder="Enter your password"
+                           autocomplete="current-password" required/>
+                    <span class="eye-toggle" onclick="togglePassword('password', this)">
+                        <i class="fas fa-eye"></i>
+                    </span>
+                </div>
+            </div>
+
+            <!-- Hidden admin key section -->
+            <div class="admin-key-section" id="adminKeySection">
+                <div class="admin-warn">
+                    <i class="fas fa-shield-halved"></i>
+                    ADMINISTRATOR ACCESS — RESTRICTED
+                </div>
+                <div class="input-wrap">
+                    <i class="fas fa-key"></i>
+                    <input type="password" name="admin_key" id="adminKey"
+                           placeholder="Enter admin secret key"/>
+                    <span class="eye-toggle" onclick="togglePassword('adminKey', this)">
+                        <i class="fas fa-eye"></i>
+                    </span>
+                </div>
+            </div>
+
+            <div class="form-row">
+                <label class="remember-label">
+                    <input type="checkbox" name="remember_me"/>
+                    Remember me
+                </label>
+                <a href="#" class="forgot-link">Forgot password?</a>
+            </div>
+
+            <button type="submit" class="btn-login" id="loginBtn">
+                <i class="fas fa-right-to-bracket"></i>
+                AUTHENTICATE
+            </button>
+
+        </form>
+
+        <div class="auth-divider"><span>OR</span></div>
+
+        <div class="auth-footer">
+            No account?
+            <a href="{{ url_for('register') }}">Create one here</a>
+        </div>
+
+        <p class="admin-hint">
+            <i class="fas fa-lock"></i>
+            Restricted access available via secure keystroke
+        </p>
+
+    </div>
+</div>
+
+<!-- Background + Auth JS -->
+<script>
+// ── BACKGROUND CANVAS ────────────────────────────────────────
+const canvas = document.getElementById("bgCanvas");
+const ctx    = canvas.getContext("2d");
+
+function resize() {
+    canvas.width  = window.innerWidth;
+    canvas.height = window.innerHeight;
+}
+resize();
+window.addEventListener("resize", resize);
+
+const circuits = Array.from({ length: 14 }, () => {
+    const pts = [{ x: Math.random()*window.innerWidth, y: Math.random()*window.innerHeight }];
+    for (let i = 0; i < 4; i++) {
+        const l = pts[pts.length-1];
+        const h = Math.random() > 0.5;
+        const d = Math.random()*80+30;
+        pts.push({ x: h ? l.x+(Math.random()>0.5?d:-d) : l.x,
+                   y: h ? l.y : l.y+(Math.random()>0.5?d:-d) });
+    }
+    return { pts, alpha: Math.random()*0.45+0.12, w: Math.random()>0.7?1.4:0.8,
+             dot: { p: Math.random(), s: Math.random()*0.004+0.002 } };
+});
+
+const particles = Array.from({ length: 55 }, () => ({
+    x: Math.random()*window.innerWidth, y: Math.random()*window.innerHeight,
+    r: Math.random()*1.6+0.5, a: Math.random()*0.55+0.15,
+    dx: (Math.random()-0.5)*0.4, dy: (Math.random()-0.5)*0.4,
+    ph: Math.random()*Math.PI*2
+}));
+
+function totalLen(pts) {
+    let l=0;
+    for(let i=1;i<pts.length;i++){const dx=pts[i].x-pts[i-1].x,dy=pts[i].y-pts[i-1].y;l+=Math.sqrt(dx*dx+dy*dy);}
+    return l;
+}
+function ptAt(pts,p){
+    let t=totalLen(pts)*p;
+    for(let i=1;i<pts.length;i++){const dx=pts[i].x-pts[i-1].x,dy=pts[i].y-pts[i-1].y,s=Math.sqrt(dx*dx+dy*dy);if(t<=s){const r=t/s;return{x:pts[i-1].x+dx*r,y:pts[i-1].y+dy*r};}t-=s;}
+    return pts[pts.length-1];
+}
+
+function animate(t) {
+    ctx.fillStyle = "#060d0a";
+    ctx.fillRect(0,0,canvas.width,canvas.height);
+
+    // Grid
+    ctx.strokeStyle="rgba(0,255,136,0.09)"; ctx.lineWidth=0.5;
+    for(let x=0;x<canvas.width;x+=38){ctx.beginPath();ctx.moveTo(x,0);ctx.lineTo(x,canvas.height);ctx.stroke();}
+    for(let y=0;y<canvas.height;y+=38){ctx.beginPath();ctx.moveTo(0,y);ctx.lineTo(canvas.width,y);ctx.stroke();}
+
+    // Circuits
+    circuits.forEach(c=>{
+        ctx.beginPath(); ctx.moveTo(c.pts[0].x,c.pts[0].y);
+        for(let i=1;i<c.pts.length;i++) ctx.lineTo(c.pts[i].x,c.pts[i].y);
+        ctx.strokeStyle=`rgba(0,255,136,${c.alpha})`; ctx.lineWidth=c.w; ctx.stroke();
+        c.pts.forEach(pt=>{ctx.beginPath();ctx.arc(pt.x,pt.y,2,0,Math.PI*2);ctx.fillStyle=`rgba(0,255,136,${c.alpha*2})`;ctx.fill();});
+        c.dot.p+=c.dot.s; if(c.dot.p>1)c.dot.p=0;
+        const pos=ptAt(c.pts,c.dot.p);
+        ctx.beginPath();ctx.arc(pos.x,pos.y,3,0,Math.PI*2);
+        ctx.fillStyle="rgba(0,255,200,0.9)";ctx.shadowBlur=12;ctx.shadowColor="rgba(0,255,136,1)";ctx.fill();ctx.shadowBlur=0;
+    });
+
+    // Particles
+    particles.forEach(p=>{
+        const a=p.a*(0.6+0.4*Math.sin(t*0.001+p.ph));
+        ctx.beginPath();ctx.arc(p.x,p.y,p.r,0,Math.PI*2);
+        ctx.fillStyle=`rgba(0,255,136,${a})`;ctx.shadowBlur=7;ctx.shadowColor="rgba(0,255,136,0.8)";ctx.fill();ctx.shadowBlur=0;
+        p.x+=p.dx; p.y+=p.dy;
+        if(p.x<0)p.x=canvas.width; if(p.x>canvas.width)p.x=0;
+        if(p.y<0)p.y=canvas.height; if(p.y>canvas.height)p.y=0;
+    });
+
+    requestAnimationFrame(animate);
+}
+requestAnimationFrame(animate);
+
+// ── PASSWORD TOGGLE ──────────────────────────────────────────
+function togglePassword(id, el) {
+    const input = document.getElementById(id);
+    const icon  = el.querySelector("i");
+    if (input.type === "password") {
+        input.type = "text";
+        icon.className = "fas fa-eye-slash";
+    } else {
+        input.type = "password";
+        icon.className = "fas fa-eye";
+    }
+}
+
+// ── ADMIN KEYSTROKE COMBO — Ctrl+Shift+A ────────────────────
+let adminMode = false;
+
+document.addEventListener("keydown", e => {
+    if (e.ctrlKey && e.shiftKey && e.key === "A") {
+        e.preventDefault();
+        adminMode = !adminMode;
+        const section = document.getElementById("adminKeySection");
+        const btn     = document.getElementById("loginBtn");
+        const key     = document.getElementById("adminKey");
+
+        if (adminMode) {
+            section.style.display = "block";
+            btn.classList.add("admin-mode");
+            btn.innerHTML = `<i class="fas fa-user-shield"></i> ADMIN ACCESS`;
+            key.focus();
+        } else {
+            section.style.display = "none";
+            btn.classList.remove("admin-mode");
+            btn.innerHTML = `<i class="fas fa-right-to-bracket"></i> AUTHENTICATE`;
+            key.value = "";
+        }
+    }
+});
+</script>
+
+</body>
+</html>

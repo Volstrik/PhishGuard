@@ -1,0 +1,493 @@
+{% extends "base.html" %}
+{% block title %}Dashboard{% endblock %}
+{% block page_title %}Dashboard{% endblock %}
+
+{% block content %}
+
+<!-- ── ROW 1: HERO + STATUS ─────────────────────────────────── -->
+<div class="dash-row1">
+
+    <!-- Hero card -->
+    <div class="dash-hero glass">
+
+        <!-- Big shield (matches the uploaded image style) -->
+<div class="hero-shield-wrap">
+    <svg viewBox="0 0 400 430" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <defs>
+            <filter id="hGlowOuter" x="-60%" y="-60%" width="220%" height="220%">
+                <feGaussianBlur stdDeviation="14" result="b"/>
+                <feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge>
+            </filter>
+            <filter id="hGlowMid" x="-40%" y="-40%" width="180%" height="180%">
+                <feGaussianBlur stdDeviation="7" result="b"/>
+                <feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge>
+            </filter>
+            <filter id="hGlowLock" x="-80%" y="-80%" width="260%" height="260%">
+                <feGaussianBlur stdDeviation="6" result="b"/>
+                <feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge>
+            </filter>
+            <filter id="hGlowStrong" x="-100%" y="-100%" width="300%" height="300%">
+                <feGaussianBlur stdDeviation="18" result="b"/>
+                <feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge>
+            </filter>
+
+            <!-- Gradients -->
+            <linearGradient id="hShieldGrad" x1="200" y1="15" x2="200" y2="355"
+                            gradientUnits="userSpaceOnUse">
+                <stop offset="0%"   stop-color="#00ffee"/>
+                <stop offset="40%"  stop-color="#00ffaa"/>
+                <stop offset="100%" stop-color="#00aa55"/>
+            </linearGradient>
+            <linearGradient id="hShield2Grad" x1="200" y1="40" x2="200" y2="320"
+                            gradientUnits="userSpaceOnUse">
+                <stop offset="0%"   stop-color="#00ffcc"/>
+                <stop offset="100%" stop-color="#007744"/>
+            </linearGradient>
+            <linearGradient id="hLockBodyGrad" x1="200" y1="185" x2="200" y2="295"
+                            gradientUnits="userSpaceOnUse">
+                <stop offset="0%"   stop-color="#00ffcc"/>
+                <stop offset="100%" stop-color="#00cc66"/>
+            </linearGradient>
+            <radialGradient id="hShieldInner" cx="50%" cy="32%" r="60%">
+                <stop offset="0%"   stop-color="#004433"/>
+                <stop offset="100%" stop-color="#001a0e"/>
+            </radialGradient>
+            <radialGradient id="hAmbientBg" cx="50%" cy="48%" r="50%">
+                <stop offset="0%"   stop-color="#00ffcc" stop-opacity="0.1"/>
+                <stop offset="70%"  stop-color="#00ff88" stop-opacity="0.04"/>
+                <stop offset="100%" stop-color="#00ff88" stop-opacity="0"/>
+            </radialGradient>
+            <radialGradient id="hPlatform" cx="50%" cy="50%" r="50%">
+                <stop offset="0%"   stop-color="#00ffcc" stop-opacity="0.5"/>
+                <stop offset="50%"  stop-color="#00ff88" stop-opacity="0.15"/>
+                <stop offset="100%" stop-color="#00ff88" stop-opacity="0"/>
+            </radialGradient>
+        </defs>
+
+        <!-- ── AMBIENT BACKGROUND GLOW ── -->
+        <circle cx="200" cy="210" r="195" fill="url(#hAmbientBg)"/>
+
+        <!-- ── OUTER HUD RINGS ── -->
+        <circle cx="200" cy="210" r="190" stroke="rgba(0,255,180,0.1)"
+                stroke-width="0.7" fill="none"/>
+        <circle cx="200" cy="210" r="178" stroke="rgba(0,255,180,0.07)"
+                stroke-width="0.5" stroke-dasharray="6 5" fill="none"/>
+        <circle cx="200" cy="210" r="165" stroke="rgba(0,255,180,0.05)"
+                stroke-width="0.4" fill="none"/>
+
+        <!-- ── HUD CROSSHAIR MARKS ── -->
+        <!-- Top -->
+        <line x1="200" y1="15"  x2="200" y2="38"
+              stroke="rgba(0,255,180,0.45)" stroke-width="0.9"/>
+        <line x1="190" y1="22"  x2="210" y2="22"
+              stroke="rgba(0,255,180,0.3)"  stroke-width="0.6"/>
+        <!-- Bottom -->
+        <line x1="200" y1="395" x2="200" y2="415"
+              stroke="rgba(0,255,180,0.3)"  stroke-width="0.7"/>
+        <!-- Left -->
+        <line x1="15"  y1="210" x2="38"  y2="210"
+              stroke="rgba(0,255,180,0.3)"  stroke-width="0.7"/>
+        <!-- Right -->
+        <line x1="362" y1="210" x2="385" y2="210"
+              stroke="rgba(0,255,180,0.3)"  stroke-width="0.7"/>
+
+        <!-- ── HUD CORNER BRACKETS ── -->
+        <!-- Top-left -->
+        <path d="M 30 55 L 30 30 L 55 30"
+              stroke="rgba(0,255,180,0.5)" stroke-width="1.2" fill="none"
+              stroke-linecap="round"/>
+        <!-- Top-right -->
+        <path d="M 370 55 L 370 30 L 345 30"
+              stroke="rgba(0,255,180,0.5)" stroke-width="1.2" fill="none"
+              stroke-linecap="round"/>
+        <!-- Bottom-left -->
+        <path d="M 30 365 L 30 390 L 55 390"
+              stroke="rgba(0,255,180,0.3)" stroke-width="1" fill="none"
+              stroke-linecap="round"/>
+        <!-- Bottom-right -->
+        <path d="M 370 365 L 370 390 L 345 390"
+              stroke="rgba(0,255,180,0.3)" stroke-width="1" fill="none"
+              stroke-linecap="round"/>
+
+        <!-- Corner bracket dots -->
+        <circle cx="30"  cy="30"  r="2.5" fill="rgba(0,255,200,0.7)"/>
+        <circle cx="370" cy="30"  r="2.5" fill="rgba(0,255,200,0.7)"/>
+        <circle cx="30"  cy="390" r="2"   fill="rgba(0,255,200,0.4)"/>
+        <circle cx="370" cy="390" r="2"   fill="rgba(0,255,200,0.4)"/>
+
+        <!-- ── CIRCUIT TRACES LEFT ── -->
+        <path d="M 88 175 L 48 175 L 48 225 L 22 225"
+              stroke="rgba(0,255,136,0.5)" stroke-width="1.2" fill="none"/>
+        <circle cx="88"  cy="175" r="3.5" fill="none"
+                stroke="rgba(0,255,136,0.65)" stroke-width="1"/>
+        <circle cx="48"  cy="175" r="2.2" fill="rgba(0,255,136,0.55)"/>
+        <circle cx="48"  cy="225" r="2.2" fill="rgba(0,255,136,0.55)"/>
+
+        <path d="M 88 240 L 58 240 L 58 270 L 22 270"
+              stroke="rgba(0,255,136,0.32)" stroke-width="0.9" fill="none"/>
+        <circle cx="88"  cy="240" r="2.8" fill="none"
+                stroke="rgba(0,255,136,0.45)" stroke-width="0.8"/>
+        <circle cx="58"  cy="270" r="1.8" fill="rgba(0,255,136,0.4)"/>
+
+        <!-- Left tick marks -->
+        <line x1="22" y1="210" x2="36" y2="210"
+              stroke="rgba(0,255,136,0.4)" stroke-width="1"/>
+        <line x1="22" y1="230" x2="34" y2="230"
+              stroke="rgba(0,255,136,0.28)" stroke-width="0.8"/>
+        <line x1="22" y1="245" x2="30" y2="245"
+              stroke="rgba(0,255,136,0.2)"  stroke-width="0.6"/>
+
+        <!-- ── CIRCUIT TRACES RIGHT ── -->
+        <path d="M 312 175 L 352 175 L 352 225 L 378 225"
+              stroke="rgba(0,255,136,0.5)" stroke-width="1.2" fill="none"/>
+        <circle cx="312" cy="175" r="3.5" fill="none"
+                stroke="rgba(0,255,136,0.65)" stroke-width="1"/>
+        <circle cx="352" cy="175" r="2.2" fill="rgba(0,255,136,0.55)"/>
+        <circle cx="352" cy="225" r="2.2" fill="rgba(0,255,136,0.55)"/>
+
+        <path d="M 312 240 L 342 240 L 342 270 L 378 270"
+              stroke="rgba(0,255,136,0.32)" stroke-width="0.9" fill="none"/>
+        <circle cx="312" cy="240" r="2.8" fill="none"
+                stroke="rgba(0,255,136,0.45)" stroke-width="0.8"/>
+        <circle cx="342" cy="270" r="1.8" fill="rgba(0,255,136,0.4)"/>
+
+        <!-- Right tick marks -->
+        <line x1="378" y1="210" x2="364" y2="210"
+              stroke="rgba(0,255,136,0.4)" stroke-width="1"/>
+        <line x1="378" y1="230" x2="366" y2="230"
+              stroke="rgba(0,255,136,0.28)" stroke-width="0.8"/>
+        <line x1="378" y1="245" x2="370" y2="245"
+              stroke="rgba(0,255,136,0.2)"  stroke-width="0.6"/>
+
+        <!-- ── PLATFORM / BASE ── -->
+        <ellipse cx="200" cy="378" rx="95"  ry="15" fill="url(#hPlatform)"/>
+        <ellipse cx="200" cy="378" rx="74"  ry="11" fill="none"
+                 stroke="rgba(0,255,180,0.28)" stroke-width="1"/>
+        <ellipse cx="200" cy="378" rx="52"  ry="7.5" fill="none"
+                 stroke="rgba(0,255,180,0.38)" stroke-width="1"/>
+        <ellipse cx="200" cy="378" rx="30"  ry="4.5" fill="none"
+                 stroke="rgba(0,255,180,0.55)" stroke-width="1"/>
+
+        <!-- Light beam from base of shield -->
+        <line x1="200" y1="355" x2="200" y2="378"
+              stroke="rgba(0,255,200,0.6)" stroke-width="2"/>
+        <line x1="200" y1="372" x2="200" y2="382"
+              stroke="rgba(0,255,200,0.9)" stroke-width="2.5"/>
+
+        <!-- ── SHIELD 1 — OUTERMOST ── -->
+        <path d="M200 18 L322 60 L322 188
+                 C322 272 270 330 200 352
+                 C130 330 78  272 78  188 L78  60 Z"
+              fill="rgba(0,20,12,0.6)"
+              stroke="url(#hShieldGrad)"
+              stroke-width="2.8"
+              filter="url(#hGlowOuter)"/>
+
+        <!-- ── SHIELD 2 ── -->
+        <path d="M200 40 L306 77 L306 188
+                 C306 262 260 314 200 334
+                 C140 314 94  262 94  188 L94  77 Z"
+              fill="rgba(0,18,10,0.5)"
+              stroke="url(#hShield2Grad)"
+              stroke-width="1.6"
+              filter="url(#hGlowMid)"/>
+
+        <!-- ── SHIELD 3 ── -->
+        <path d="M200 62 L290 95 L290 188
+                 C290 252 250 298 200 316
+                 C150 298 110 252 110 188 L110 95 Z"
+              fill="rgba(0,16,9,0.55)"
+              stroke="rgba(0,210,155,0.38)"
+              stroke-width="1.2"/>
+
+        <!-- ── SHIELD 4 — INNERMOST ── -->
+        <path d="M200 92 L272 120 L272 188
+                 C272 234 244 268 200 283
+                 C156 268 128 234 128 188 L128 120 Z"
+              fill="url(#hShieldInner)"
+              stroke="rgba(0,255,180,0.65)"
+              stroke-width="2"
+              filter="url(#hGlowMid)"/>
+
+        <!-- Top V notch line -->
+        <line x1="200" y1="92" x2="200" y2="115"
+              stroke="rgba(0,255,180,0.4)" stroke-width="1"/>
+
+        <!-- Inner shield circuit lines -->
+        <line x1="152" y1="155" x2="248" y2="155"
+              stroke="rgba(0,255,136,0.18)" stroke-width="0.7"/>
+        <line x1="152" y1="155" x2="152" y2="175"
+              stroke="rgba(0,255,136,0.18)" stroke-width="0.7"/>
+        <line x1="248" y1="155" x2="248" y2="175"
+              stroke="rgba(0,255,136,0.18)" stroke-width="0.7"/>
+        <circle cx="152" cy="155" r="1.8" fill="rgba(0,255,136,0.5)"/>
+        <circle cx="248" cy="155" r="1.8" fill="rgba(0,255,136,0.5)"/>
+        <circle cx="200" cy="115" r="2"   fill="rgba(0,255,200,0.6)"/>
+
+        <!-- ── PADLOCK SHACKLE ── -->
+        <path d="M168 196 L168 174
+                 C168 152 232 152 232 174 L232 196"
+              fill="none"
+              stroke="url(#hLockBodyGrad)"
+              stroke-width="8"
+              stroke-linecap="round"
+              filter="url(#hGlowLock)"/>
+
+        <!-- Shackle inner highlight -->
+        <path d="M172 196 L172 175
+                 C172 157 228 157 228 175 L228 196"
+              fill="none"
+              stroke="rgba(0,255,220,0.3)"
+              stroke-width="3"
+              stroke-linecap="round"/>
+
+        <!-- ── PADLOCK BODY ── -->
+        <rect x="156" y="194" width="88" height="72" rx="10"
+              fill="url(#hLockBodyGrad)"
+              filter="url(#hGlowStrong)"
+              opacity="0.95"/>
+
+        <!-- Body inner recess -->
+        <rect x="164" y="202" width="72" height="57" rx="6"
+              fill="rgba(0,22,14,0.65)"/>
+
+        <!-- Body border highlight -->
+        <rect x="156" y="194" width="88" height="72" rx="10"
+              fill="none"
+              stroke="rgba(0,255,220,0.4)"
+              stroke-width="1"/>
+
+        <!-- ── KEYHOLE CIRCLE ── -->
+        <circle cx="200" cy="222" r="13"
+                fill="rgba(0,10,6,0.95)"
+                stroke="rgba(0,255,180,0.55)"
+                stroke-width="1.8"
+                filter="url(#hGlowLock)"/>
+
+        <!-- Keyhole inner ring -->
+        <circle cx="200" cy="222" r="9"
+                fill="rgba(0,8,4,0.98)"
+                stroke="rgba(0,255,180,0.2)"
+                stroke-width="0.6"/>
+
+        <!-- Keyhole slot -->
+        <rect x="195.5" y="230" width="9" height="18" rx="4.5"
+              fill="rgba(0,8,4,0.98)"/>
+
+        <!-- ── AMBIENT SCATTER DOTS ── -->
+        <circle cx="108" cy="88"  r="1.8" fill="rgba(0,255,180,0.55)"/>
+        <circle cx="292" cy="88"  r="1.8" fill="rgba(0,255,180,0.55)"/>
+        <circle cx="90"  cy="210" r="1.3" fill="rgba(0,255,180,0.35)"/>
+        <circle cx="310" cy="210" r="1.3" fill="rgba(0,255,180,0.35)"/>
+        <circle cx="120" cy="318" r="1.4" fill="rgba(0,255,180,0.3)"/>
+        <circle cx="280" cy="318" r="1.4" fill="rgba(0,255,180,0.3)"/>
+        <circle cx="160" cy="52"  r="1.1" fill="rgba(0,255,180,0.28)"/>
+        <circle cx="240" cy="52"  r="1.1" fill="rgba(0,255,180,0.28)"/>
+        <circle cx="200" cy="18"  r="2"   fill="rgba(0,255,220,0.7)"/>
+
+    </svg>
+</div>
+
+        <!-- Text + scan bar -->
+        <div class="hero-text">
+            <h1 class="hero-title">PhishGuard</h1>
+            <p class="hero-subtitle">URL ANALYZER</p>
+            <p class="hero-desc">Analyze suspicious URLs safely before you visit them</p>
+            <div class="hero-scan-bar">
+                <input type="text" id="quickScanInput" placeholder="Paste suspicious URL here..."/>
+                <button class="btn-scan" onclick="quickScan()">
+                    <i class="fas fa-magnifying-glass"></i> Scan URL
+                </button>
+            </div>
+            <div class="hero-btns">
+                <a href="{{ url_for('history') }}" class="btn-outline">
+                    <i class="fas fa-clock-rotate-left"></i> View History
+                </a>
+                <a href="{{ url_for('reports') }}" class="btn-outline">
+                    <i class="fas fa-file-lines"></i> Reports
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <!-- System status -->
+    <div class="dash-status glass">
+        <div class="status-hdr">
+            <i class="fas fa-shield-halved"></i><span>System Status</span>
+        </div>
+        <p class="status-ok">All Systems Operational</p>
+        <div class="status-chart-wrap">
+            <canvas id="statusMiniChart"></canvas>
+        </div>
+        <p class="status-updated">Last Updated: {{ now if now else "Just Now" }}</p>
+    </div>
+
+</div>
+
+<!-- ── ROW 2: STAT CARDS ─────────────────────────────────────── -->
+<div class="dash-stats">
+
+    <div class="stat-card glass">
+        <div class="stat-icon blue"><i class="fas fa-chart-simple"></i></div>
+        <div>
+            <p class="stat-label">Total Scans</p>
+            <p class="stat-value">{{ stats.total|default(0) }}</p>
+            <p class="stat-change pos">↑ Live</p>
+        </div>
+    </div>
+
+    <div class="stat-card glass">
+        <div class="stat-icon green"><i class="fas fa-shield-halved"></i></div>
+        <div>
+            <p class="stat-label">Safe</p>
+            <p class="stat-value">{{ stats.safe|default(0) }}</p>
+            <p class="stat-change">{{ ((stats.safe/stats.total)*100)|round(1) if stats.total>0 else 0 }}%</p>
+        </div>
+    </div>
+
+    <div class="stat-card glass">
+        <div class="stat-icon yellow"><i class="fas fa-triangle-exclamation"></i></div>
+        <div>
+            <p class="stat-label">Suspicious</p>
+            <p class="stat-value">{{ stats.suspicious|default(0) }}</p>
+            <p class="stat-change">{{ ((stats.suspicious/stats.total)*100)|round(1) if stats.total>0 else 0 }}%</p>
+        </div>
+    </div>
+
+    <div class="stat-card glass">
+        <div class="stat-icon orange"><i class="fas fa-circle-exclamation"></i></div>
+        <div>
+            <p class="stat-label">High Risk</p>
+            <p class="stat-value">{{ stats.high_risk|default(0) }}</p>
+            <p class="stat-change">{{ ((stats.high_risk/stats.total)*100)|round(1) if stats.total>0 else 0 }}%</p>
+        </div>
+    </div>
+
+    <div class="stat-card glass">
+        <div class="stat-icon red"><i class="fas fa-skull-crossbones"></i></div>
+        <div>
+            <p class="stat-label">Malicious</p>
+            <p class="stat-value red-text">{{ stats.malicious|default(0) }}</p>
+            <p class="stat-change">{{ ((stats.malicious/stats.total)*100)|round(1) if stats.total>0 else 0 }}%</p>
+        </div>
+    </div>
+
+    <div class="stat-card glass">
+        <div class="stat-icon teal"><i class="fas fa-gauge-high"></i></div>
+        <div>
+            <p class="stat-label">Avg Score</p>
+            <p class="stat-value">{{ stats.avg_score|default(0) }}<small>/100</small></p>
+            <p class="stat-change yellow-text">Medium Risk</p>
+        </div>
+    </div>
+
+</div>
+
+<!-- ── ROW 3: CHARTS ─────────────────────────────────────────── -->
+<div class="dash-charts">
+
+    <!-- Donut -->
+    <div class="chart-card glass">
+        <h3 class="card-title">Threat Distribution</h3>
+        <div class="donut-wrap"><canvas id="threatDonut"></canvas></div>
+        <div class="donut-legend">
+            <div class="legend-row">
+                <span class="dot green"></span><span>Safe</span>
+                <span class="legend-pct">♦ {{ ((stats.safe/stats.total)*100)|round(1) if stats.total>0 else 0 }}% ({{ stats.safe }})</span>
+            </div>
+            <div class="legend-row">
+                <span class="dot yellow"></span><span>Suspicious</span>
+                <span class="legend-pct">♦ {{ ((stats.suspicious/stats.total)*100)|round(1) if stats.total>0 else 0 }}% ({{ stats.suspicious }})</span>
+            </div>
+            <div class="legend-row">
+                <span class="dot orange"></span><span>High Risk</span>
+                <span class="legend-pct">♦ {{ ((stats.high_risk/stats.total)*100)|round(1) if stats.total>0 else 0 }}% ({{ stats.high_risk }})</span>
+            </div>
+            <div class="legend-row">
+                <span class="dot red"></span><span>Malicious</span>
+                <span class="legend-pct">♦ {{ ((stats.malicious/stats.total)*100)|round(1) if stats.total>0 else 0 }}% ({{ stats.malicious }})</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Trend -->
+    <div class="chart-card glass">
+        <div class="card-title-row">
+            <h3 class="card-title">Threat Score Trend <span class="card-sub">(Last 20 Scans)</span></h3>
+            <span class="card-badge">Last 20 Scans ▾</span>
+        </div>
+        <div class="trend-wrap"><canvas id="trendChart"></canvas></div>
+    </div>
+
+    <!-- Top threats -->
+    <div class="chart-card glass">
+        <div class="card-title-row">
+            <h3 class="card-title">Top Threats</h3>
+            <a href="{{ url_for('history') }}" class="view-all-btn">View All</a>
+        </div>
+        <table class="threats-tbl">
+            <thead>
+                <tr>
+                    <th>#</th><th>URL</th><th>Score</th><th>Risk</th><th>Time</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for t in top_threats %}
+                <tr>
+                    <td>{{ loop.index }}</td>
+                    <td class="tbl-url" title="{{ t.url }}">{{ t.url|truncate(22) }}</td>
+                    <td>{{ t.score }}%</td>
+                    <td><span class="risk-badge {{ t.risk_level|lower|replace(' ','-') }}">{{ t.risk_level }}</span></td>
+                    <td class="tbl-time">{{ t.scanned_at }}</td>
+                </tr>
+                {% else %}
+                <tr><td colspan="5" class="empty-row">No threats yet</td></tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+</div>
+
+<!-- ── ROW 4: FEATURES ───────────────────────────────────────── -->
+<div class="dash-features">
+    <div class="feat-card glass">
+        <i class="fas fa-shield-halved"></i>
+        <h4>Advanced Protection</h4>
+        <p>Multi-layered analysis engine to detect threats accurately.</p>
+    </div>
+    <div class="feat-card glass">
+        <i class="fas fa-bolt"></i>
+        <h4>Real-time Scanning</h4>
+        <p>Instantly analyze URLs against multiple databases.</p>
+    </div>
+    <div class="feat-card glass">
+        <i class="fas fa-gauge-high"></i>
+        <h4>Intelligent Scoring</h4>
+        <p>Smart threat scoring from 0 to 100 for better risk assessment.</p>
+    </div>
+    <div class="feat-card glass">
+        <i class="fas fa-file-lines"></i>
+        <h4>Detailed Reports</h4>
+        <p>Get in-depth insights and security recommendations.</p>
+    </div>
+    <div class="feat-card glass">
+        <i class="fas fa-lock"></i>
+        <h4>Your Safety First</h4>
+        <p>PhishGuard helps you browse the web with confidence.</p>
+    </div>
+</div>
+
+<script>
+    const trendScores = {{ trend_scores|tojson }};
+    const donutData   = {
+        safe: {{ stats.safe }}, suspicious: {{ stats.suspicious }},
+        high_risk: {{ stats.high_risk }}, malicious: {{ stats.malicious }}
+    };
+</script>
+{% endblock %}
+
+{% block extra_scripts %}
+<script src="{{ url_for('static', filename='js/charts.js') }}"></script>
+<script src="{{ url_for('static', filename='js/scanner.js') }}"></script>
+{% endblock %}

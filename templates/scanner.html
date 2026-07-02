@@ -1,0 +1,164 @@
+{% extends "base.html" %}
+{% block title %}Scanner{% endblock %}
+{% block page_title %}Scanner{% endblock %}
+
+{% block content %}
+
+<div class="scanner-hero glass">
+    <h1>URL Scanner</h1>
+    <p>Paste any suspicious URL below and PhishGuard will analyze it using VirusTotal's database of 70+ security engines.</p>
+</div>
+
+<div class="scanner-input-card glass">
+    <div class="scan-input-row">
+        <div class="scan-input-wrap">
+            <i class="fas fa-link"></i>
+            <input type="text" id="scanInput"
+                   placeholder="https://example.com or paste any suspicious URL..."
+                   onkeydown="if(event.key==='Enter') startScan()"/>
+        </div>
+        <button class="btn-scan-lg" id="scanBtn" onclick="startScan()">
+            <i class="fas fa-magnifying-glass"></i><span>Scan URL</span>
+        </button>
+    </div>
+    <div class="scan-tips">
+        <span><i class="fas fa-circle-info"></i> Tip: You can paste URLs with or without https://</span>
+        <span><i class="fas fa-clock"></i> Scan takes 10–30 seconds</span>
+        <span><i class="fas fa-database"></i> Powered by VirusTotal</span>
+    </div>
+</div>
+
+<div class="scan-loading glass" id="scanLoading" hidden>
+    <div class="spinner"></div>
+    <p class="loading-title">Analyzing URL...</p>
+    <p class="loading-desc">Checking against 70+ security engines. Please wait.</p>
+    <div class="loading-steps">
+        <div class="step" id="step1"><i class="fas fa-upload"></i> Submitting URL</div>
+        <div class="step" id="step2"><i class="fas fa-gear"></i> Running Analysis</div>
+        <div class="step" id="step3"><i class="fas fa-chart-bar"></i> Fetching Results</div>
+    </div>
+</div>
+
+<div class="scan-result glass" id="scanResult" hidden>
+    <div class="result-hdr">
+        <div class="result-icon" id="resultIcon"><i class="fas fa-shield-halved"></i></div>
+        <div class="result-title-block">
+            <h2 id="resultRiskLevel">Safe</h2>
+            <p id="resultUrl" class="result-url"></p>
+        </div>
+        <div class="score-circle" id="resultScoreCircle">
+            <span id="resultScore">0</span><small>/100</small>
+        </div>
+    </div>
+    <div class="result-stats">
+        <div class="result-stat green"><i class="fas fa-circle-check"></i><span id="safeCount">0</span><p>Safe</p></div>
+        <div class="result-stat yellow"><i class="fas fa-triangle-exclamation"></i><span id="suspiciousCount">0</span><p>Suspicious</p></div>
+        <div class="result-stat red"><i class="fas fa-skull-crossbones"></i><span id="maliciousCount">0</span><p>Malicious</p></div>
+        <div class="result-stat gray"><i class="fas fa-circle-minus"></i><span id="undetectedCount">0</span><p>Undetected</p></div>
+    </div>
+    <div class="progress-label">
+        <span>Threat Score</span><span id="progressScore">0 / 100</span>
+    </div>
+    <div class="progress-track">
+        <div class="progress-fill" id="progressFill"></div>
+    </div>
+    <div class="result-rec" id="resultRec">
+        <i class="fas fa-circle-info"></i><p id="recText"></p>
+    </div>
+    <!-- ── OSINT INTELLIGENCE SECTION ── -->
+<div class="osint-section" id="osintSection" hidden>
+
+    <div class="osint-hdr">
+        <i class="fas fa-satellite-dish"></i>
+        <span>OSINT Intelligence</span>
+        <span class="osint-domain" id="osintDomain"></span>
+    </div>
+
+    <!-- Warnings (only shows if any exist) -->
+    <div class="osint-warnings" id="osintWarnings" hidden></div>
+
+    <div class="osint-grid">
+
+        <!-- WHOIS card -->
+        <div class="osint-card">
+            <div class="osint-card-hdr">
+                <i class="fas fa-id-card"></i> Domain Registration
+            </div>
+            <div class="osint-row">
+                <span>Registrar</span>
+                <span id="whoisRegistrar">—</span>
+            </div>
+            <div class="osint-row">
+                <span>Created</span>
+                <span id="whoisCreated">—</span>
+            </div>
+            <div class="osint-row">
+                <span>Domain Age</span>
+                <span id="whoisAge">—</span>
+            </div>
+        </div>
+
+        <!-- SSL card -->
+        <div class="osint-card">
+            <div class="osint-card-hdr">
+                <i class="fas fa-lock"></i> SSL Certificate
+            </div>
+            <div class="osint-row">
+                <span>Status</span>
+                <span id="sslStatus">—</span>
+            </div>
+            <div class="osint-row">
+                <span>Issuer</span>
+                <span id="sslIssuer">—</span>
+            </div>
+            <div class="osint-row">
+                <span>Valid Until</span>
+                <span id="sslExpiry">—</span>
+            </div>
+        </div>
+
+    </div>
+</div>
+    <div class="result-actions">
+        <button onclick="resetScanner()"><i class="fas fa-rotate-left"></i> Scan Another</button>
+        <a href="{{ url_for('history') }}"><i class="fas fa-clock-rotate-left"></i> View History</a>
+    </div>
+</div>
+
+<div class="how-it-works glass">
+    <h3>How It Works</h3>
+    <div class="steps-row">
+        <div class="how-step">
+            <div class="how-num">1</div>
+            <i class="fas fa-paste"></i>
+            <h4>Paste URL</h4>
+            <p>Copy and paste any suspicious link into the scanner above.</p>
+        </div>
+        <div class="how-arrow"><i class="fas fa-arrow-right"></i></div>
+        <div class="how-step">
+            <div class="how-num">2</div>
+            <i class="fas fa-server"></i>
+            <h4>Analysis</h4>
+            <p>PhishGuard sends it to 70+ security engines via VirusTotal.</p>
+        </div>
+        <div class="how-arrow"><i class="fas fa-arrow-right"></i></div>
+        <div class="how-step">
+            <div class="how-num">3</div>
+            <i class="fas fa-chart-bar"></i>
+            <h4>Get Results</h4>
+            <p>Receive a full threat score and risk breakdown instantly.</p>
+        </div>
+        <div class="how-arrow"><i class="fas fa-arrow-right"></i></div>
+        <div class="how-step">
+            <div class="how-num">4</div>
+            <i class="fas fa-shield-halved"></i>
+            <h4>Stay Safe</h4>
+            <p>Follow the recommendation to protect yourself online.</p>
+        </div>
+    </div>
+</div>
+
+{% endblock %}
+{% block extra_scripts %}
+<script src="{{ url_for('static', filename='js/scanner.js') }}"></script>
+{% endblock %}

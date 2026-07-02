@@ -1,0 +1,1069 @@
+<!-- templates/admin/dashboard.html -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PhishGuard – Admin Control Center</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&family=Rajdhani:wght@400;600&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg:        #060d0a;
+            --bg2:       #070e0a;
+            --card:      rgba(13,26,18,0.88);
+            --accent:    #00ff88;
+            --teal:      #00ffcc;
+            --red:       #ff4757;
+            --yellow:    #ffd93d;
+            --orange:    #ff8c42;
+            --blue:      #4ecdc4;
+            --border:    rgba(0,255,136,0.18);
+            --muted:     #3d6b50;
+            --text:      #e0f5eb;
+            --secondary: #7ab893;
+            --sidebar:   180px;
+            --topbar:    56px;
+            --radius:    10px;
+        }
+
+        *, *::before, *::after { margin:0; padding:0; box-sizing:border-box; }
+        html, body { height:100%; overflow-x:hidden; }
+
+        body {
+            background: var(--bg);
+            color: var(--text);
+            font-family: 'Rajdhani', sans-serif;
+            font-size: 14px;
+            display: flex;
+        }
+
+        a { text-decoration:none; color:inherit; }
+
+        ::-webkit-scrollbar { width:5px; }
+        ::-webkit-scrollbar-track { background: var(--bg); }
+        ::-webkit-scrollbar-thumb { background: rgba(0,255,136,0.3); border-radius:3px; }
+
+        /* ── CANVAS ── */
+        #bgCanvas {
+            position: fixed;
+            top:0; left: var(--sidebar);
+            width: calc(100vw - var(--sidebar));
+            height: 100vh;
+            z-index:0;
+            pointer-events:none;
+        }
+
+        /* ── SIDEBAR ── */
+        .sidebar {
+            width: var(--sidebar);
+            min-width: var(--sidebar);
+            background: #04080a;
+            border-right: 1px solid rgba(255,71,87,0.22);
+            display: flex;
+            flex-direction: column;
+            position: fixed;
+            top:0; left:0;
+            height: 100vh;
+            z-index: 300;
+        }
+
+        .sidebar-logo {
+            display: flex;
+            align-items: center;
+            gap: 9px;
+            padding: 14px 12px 16px;
+            border-bottom: 1px solid rgba(255,71,87,0.15);
+            flex-shrink: 0;
+        }
+
+        .logo-icon {
+            width: 36px; height: 36px;
+            display: flex; align-items:center; justify-content:center;
+        }
+
+        .logo-icon svg {
+            width:36px; height:36px;
+            animation: adminLogoPulse 3s ease-in-out infinite;
+            filter: drop-shadow(0 0 6px rgba(255,71,87,0.7))
+                    drop-shadow(0 0 14px rgba(255,71,87,0.4));
+        }
+
+        @keyframes adminLogoPulse {
+            0%,100% { filter: drop-shadow(0 0 4px rgba(255,71,87,0.6)) drop-shadow(0 0 10px rgba(255,71,87,0.3)); }
+            50%      { filter: drop-shadow(0 0 12px rgba(255,71,87,1))  drop-shadow(0 0 26px rgba(255,71,87,0.6)); }
+        }
+
+        .logo-main {
+            display:block;
+            font-family:'Orbitron',sans-serif;
+            font-size:12px; color: var(--red);
+            font-weight:700; white-space:nowrap;
+        }
+
+        .logo-sub {
+            display:block;
+            font-size:8px; color:rgba(255,71,87,0.45);
+            letter-spacing:1.5px; white-space:nowrap;
+            margin-top:2px;
+        }
+
+        .sidebar-nav {
+            flex:1; padding:12px 10px;
+            display:flex; flex-direction:column; gap:4px;
+        }
+
+        .nav-item {
+            display:flex; align-items:center; gap:9px;
+            padding:9px 11px;
+            border-radius:7px;
+            color: var(--secondary);
+            font-size:12px; font-weight:600;
+            border:1px solid transparent;
+            transition:all 0.3s ease;
+            white-space:nowrap;
+        }
+
+        .nav-item i { width:15px; text-align:center; font-size:13px; flex-shrink:0; }
+
+        .nav-item:hover,
+        .nav-item.active {
+            background: rgba(255,71,87,0.09);
+            color: var(--red);
+            border-color: rgba(255,71,87,0.22);
+            box-shadow: inset 3px 0 0 var(--red);
+        }
+
+        .nav-divider {
+            height:1px;
+            background: rgba(255,71,87,0.1);
+            margin: 8px 0;
+        }
+
+        .nav-item.exit {
+            color: rgba(255,71,87,0.6);
+            margin-top:auto;
+        }
+
+        .nav-item.exit:hover {
+            background: rgba(255,71,87,0.12);
+            color: var(--red);
+            border-color: rgba(255,71,87,0.3);
+        }
+
+        .sidebar-footer {
+            padding:12px 14px;
+            border-top:1px solid rgba(255,71,87,0.1);
+            flex-shrink:0;
+        }
+
+        .admin-badge {
+            display:flex; align-items:center; gap:8px;
+            background: rgba(255,71,87,0.08);
+            border:1px solid rgba(255,71,87,0.2);
+            border-radius:7px;
+            padding:8px 10px;
+        }
+
+        .admin-badge i  { color:var(--red); font-size:14px; }
+        .admin-badge p  { font-size:10px; color:var(--red); font-family:'Orbitron',sans-serif; }
+        .admin-badge small { font-size:9px; color:rgba(255,71,87,0.5); display:block; }
+
+        /* ── MAIN ── */
+        .main-wrapper {
+            margin-left: var(--sidebar);
+            flex:1;
+            display:flex; flex-direction:column;
+            min-height:100vh;
+            position:relative; z-index:1;
+        }
+
+        /* ── TOPBAR ── */
+        .topbar {
+            height: var(--topbar);
+            background: rgba(4,8,10,0.97);
+            border-bottom:1px solid rgba(255,71,87,0.18);
+            display:flex; align-items:center; justify-content:space-between;
+            padding:0 20px;
+            position:sticky; top:0; z-index:99;
+            backdrop-filter:blur(8px);
+            box-shadow:0 1px 20px rgba(255,71,87,0.06);
+        }
+
+        .topbar-left { display:flex; align-items:center; gap:14px; }
+
+        .admin-crown {
+            display:flex; align-items:center; gap:8px;
+            background: rgba(255,71,87,0.08);
+            border:1px solid rgba(255,71,87,0.25);
+            border-radius:6px;
+            padding:5px 12px;
+            font-family:'Orbitron',sans-serif;
+            font-size:10px; color:var(--red);
+            letter-spacing:1px;
+            animation: crownPulse 3s ease-in-out infinite;
+        }
+
+        @keyframes crownPulse {
+            0%,100% { box-shadow:0 0 8px rgba(255,71,87,0.2); }
+            50%      { box-shadow:0 0 18px rgba(255,71,87,0.5); }
+        }
+
+        .page-title {
+            font-family:'Orbitron',sans-serif;
+            font-size:15px; color:var(--red);
+            text-shadow:0 0 16px rgba(255,71,87,0.5);
+        }
+
+        .topbar-right { display:flex; align-items:center; gap:14px; }
+
+        .topbar-user { display:flex; align-items:center; gap:9px; }
+
+        .user-avatar {
+            width:32px; height:32px;
+            background: rgba(255,71,87,0.1);
+            border:1px solid rgba(255,71,87,0.35);
+            border-radius:50%;
+            display:flex; align-items:center; justify-content:center;
+            color:var(--red); font-size:14px;
+            box-shadow:0 0 10px rgba(255,71,87,0.3);
+        }
+
+        .user-name  { display:block; font-size:12px; font-weight:700; color:var(--text); }
+        .user-role  { display:block; font-size:10px; color:var(--red); }
+
+        .btn-exit {
+            display:inline-flex; align-items:center; gap:6px;
+            padding:7px 14px;
+            background: rgba(255,71,87,0.1);
+            border:1px solid rgba(255,71,87,0.3);
+            border-radius:7px;
+            color:var(--red); font-size:11px; font-weight:600;
+            cursor:pointer; transition:all 0.3s ease;
+            font-family:'Rajdhani',sans-serif;
+        }
+
+        .btn-exit:hover {
+            background: rgba(255,71,87,0.2);
+            box-shadow:0 0 14px rgba(255,71,87,0.3);
+        }
+
+        /* ── CONTENT ── */
+        .content { padding:16px 18px; flex:1; }
+
+        /* ── GLASS ── */
+        .glass {
+            background: var(--card);
+            border:1px solid var(--border);
+            border-radius: var(--radius);
+            backdrop-filter:blur(8px);
+        }
+
+        /* Admin glass — red tint */
+        .glass-red {
+            background: rgba(15,8,10,0.88);
+            border:1px solid rgba(255,71,87,0.2);
+            border-radius: var(--radius);
+            backdrop-filter:blur(8px);
+        }
+
+        /* ── ALERT BANNER ── */
+        .admin-alert {
+            display:flex; align-items:center; gap:12px;
+            padding:11px 16px;
+            background: rgba(255,71,87,0.08);
+            border:1px solid rgba(255,71,87,0.25);
+            border-radius: var(--radius);
+            margin-bottom:12px;
+            font-size:12px; color:var(--red);
+            font-family:'Orbitron',sans-serif;
+            letter-spacing:0.5px;
+            animation: crownPulse 3s ease-in-out infinite;
+        }
+
+        .admin-alert i { font-size:16px; }
+
+        .admin-alert span { margin-left:auto; font-size:10px; color:rgba(255,71,87,0.5); }
+
+        /* ── ADMIN STAT CARDS ── */
+        .admin-stats {
+            display:grid;
+            grid-template-columns:repeat(4,1fr);
+            gap:10px;
+            margin-bottom:12px;
+        }
+
+        .admin-stat-card {
+            padding:14px 16px;
+            display:flex; align-items:center; gap:12px;
+            transition:all 0.3s ease; cursor:default;
+        }
+
+        .admin-stat-card:hover {
+            border-color:rgba(255,71,87,0.4) !important;
+            box-shadow:0 0 16px rgba(255,71,87,0.12);
+            transform:translateY(-1px);
+        }
+
+        .astat-icon {
+            width:38px; height:38px;
+            border-radius:7px;
+            display:flex; align-items:center; justify-content:center;
+            font-size:16px; flex-shrink:0;
+        }
+
+        .astat-icon.red    { background:rgba(255,71,87,0.12);  color:var(--red); }
+        .astat-icon.green  { background:rgba(0,255,136,0.12);  color:var(--accent); }
+        .astat-icon.yellow { background:rgba(255,217,61,0.12); color:var(--yellow); }
+        .astat-icon.blue   { background:rgba(78,205,196,0.12); color:var(--blue); }
+
+        .astat-label { font-size:9px; color:var(--muted); text-transform:uppercase; letter-spacing:0.8px; }
+        .astat-value { font-family:'Orbitron',sans-serif; font-size:20px; color:var(--text); line-height:1.2; }
+        .astat-sub   { font-size:10px; color:var(--muted); }
+
+        /* ── CHARTS ROW ── */
+        .charts-row {
+            display:grid;
+            grid-template-columns:200px 1fr;
+            gap:10px;
+            margin-bottom:12px;
+        }
+
+        .chart-card { padding:13px; }
+
+        .card-title {
+            font-family:'Orbitron',sans-serif;
+            font-size:10px; color:var(--text);
+            margin-bottom:10px; letter-spacing:0.5px;
+            border-bottom:1px solid rgba(255,71,87,0.1);
+            padding-bottom:8px;
+        }
+
+        .card-title-row {
+            display:flex; align-items:center; justify-content:space-between;
+            margin-bottom:10px;
+            border-bottom:1px solid rgba(255,71,87,0.1);
+            padding-bottom:8px;
+        }
+
+        .card-sub { font-size:9px; color:var(--muted); font-family:'Rajdhani',sans-serif; }
+
+        .donut-wrap { width:120px; height:120px; margin:0 auto 10px; }
+
+        .legend-row {
+            display:flex; align-items:center; gap:6px;
+            font-size:10px; color:var(--secondary);
+            margin-bottom:4px;
+        }
+
+        .legend-row strong { margin-left:auto; color:var(--text); }
+
+        .dot { width:8px; height:8px; border-radius:50%; flex-shrink:0; }
+        .dot.green  { background:#00ff88; }
+        .dot.yellow { background:#ffd93d; }
+        .dot.orange { background:#ff8c42; }
+        .dot.red-dot{ background:#ff4757; }
+
+        .trend-wrap { height:160px; position:relative; }
+
+        /* ── USERS TABLE ── */
+        .section-title {
+            font-family:'Orbitron',sans-serif;
+            font-size:11px; color:var(--red);
+            margin-bottom:10px;
+            display:flex; align-items:center; gap:8px;
+            letter-spacing:0.5px;
+        }
+
+        .section-title::after {
+            content:'';
+            flex:1; height:1px;
+            background:rgba(255,71,87,0.15);
+        }
+
+        .users-grid {
+            display:grid;
+            grid-template-columns:repeat(auto-fill, minmax(220px,1fr));
+            gap:10px;
+            margin-bottom:12px;
+        }
+
+        .user-card {
+            padding:13px;
+            display:flex; align-items:center; gap:12px;
+            transition:all 0.3s ease;
+        }
+
+        .user-card:hover {
+            border-color:rgba(0,255,136,0.3) !important;
+            box-shadow:0 0 12px rgba(0,255,136,0.1);
+        }
+
+        .user-card-avatar {
+            width:38px; height:38px;
+            border-radius:50%;
+            background: rgba(0,255,136,0.08);
+            border:1px solid rgba(0,255,136,0.25);
+            display:flex; align-items:center; justify-content:center;
+            font-family:'Orbitron',sans-serif;
+            font-size:14px; color:var(--accent);
+            flex-shrink:0;
+        }
+
+        .user-card-name  { font-size:13px; font-weight:700; color:var(--text); }
+        .user-card-email { font-size:10px; color:var(--muted); }
+        .user-card-date  { font-size:9px;  color:var(--muted); margin-top:3px; }
+
+        .user-card-badge {
+            margin-left:auto;
+            font-size:9px; font-family:'Orbitron',sans-serif;
+            padding:3px 8px;
+            border-radius:20px;
+            flex-shrink:0;
+        }
+
+        .user-card-badge.admin { background:rgba(255,71,87,0.12); color:var(--red); border:1px solid rgba(255,71,87,0.3); }
+        .user-card-badge.user  { background:rgba(0,255,136,0.08); color:var(--accent); border:1px solid rgba(0,255,136,0.2); }
+
+        /* ── ALL SCANS TABLE ── */
+        .table-card { padding:14px; margin-bottom:12px; overflow-x:auto; }
+
+        .admin-table { width:100%; border-collapse:collapse; font-size:11px; }
+
+        .admin-table th {
+            color:var(--muted);
+            text-transform:uppercase; font-size:9px; letter-spacing:0.8px;
+            padding:8px 10px;
+            border-bottom:1px solid rgba(255,71,87,0.15);
+            text-align:left; white-space:nowrap;
+        }
+
+        .admin-table td {
+            padding:9px 10px;
+            border-bottom:1px solid rgba(255,71,87,0.05);
+            color:var(--secondary);
+        }
+
+        .admin-table tr:last-child td { border-bottom:none; }
+
+        .admin-table tr:hover td {
+            background:rgba(255,71,87,0.04);
+            color:var(--text);
+        }
+
+        .url-cell { max-width:180px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+        .time-cell { font-size:10px; color:var(--muted); white-space:nowrap; }
+
+        /* Risk badges */
+        .risk-badge {
+            display:inline-block; padding:2px 8px;
+            border-radius:20px; font-size:9px; font-weight:700;
+            text-transform:uppercase; letter-spacing:0.4px;
+        }
+        .risk-badge.safe       { background:rgba(0,255,136,0.1);  color:#00ff88; border:1px solid #00ff88; }
+        .risk-badge.suspicious { background:rgba(255,217,61,0.1); color:#ffd93d; border:1px solid #ffd93d; }
+        .risk-badge.high-risk  { background:rgba(255,140,66,0.1); color:#ff8c42; border:1px solid #ff8c42; }
+        .risk-badge.malicious  { background:rgba(255,71,87,0.12); color:#ff4757; border:1px solid #ff4757;
+                                  animation:dangerPulse 2s infinite; }
+
+        @keyframes dangerPulse {
+            0%,100% { box-shadow:0 0 4px rgba(255,71,87,0.3); }
+            50%      { box-shadow:0 0 12px rgba(255,71,87,0.7); }
+        }
+
+        .score-pill {
+            display:inline-flex; align-items:center; justify-content:center;
+            width:32px; height:20px; border-radius:4px;
+            font-size:10px; font-weight:700;
+        }
+        .score-pill.safe       { background:rgba(0,255,136,0.1);  color:#00ff88; }
+        .score-pill.suspicious { background:rgba(255,217,61,0.1); color:#ffd93d; }
+        .score-pill.high-risk  { background:rgba(255,140,66,0.1); color:#ff8c42; }
+        .score-pill.malicious  { background:rgba(255,71,87,0.12); color:#ff4757; }
+
+        /* Delete button */
+        .btn-delete {
+            display:inline-flex; align-items:center; gap:5px;
+            padding:4px 10px;
+            background:rgba(255,71,87,0.08);
+            border:1px solid rgba(255,71,87,0.25);
+            border-radius:5px;
+            color:var(--red); font-size:10px;
+            cursor:pointer; transition:all 0.2s ease;
+            font-family:'Rajdhani',sans-serif;
+        }
+
+        .btn-delete:hover {
+            background:rgba(255,71,87,0.2);
+            box-shadow:0 0 10px rgba(255,71,87,0.3);
+        }
+
+        /* Filter bar */
+        .filter-bar {
+            display:flex; align-items:center; gap:10px;
+            margin-bottom:12px; flex-wrap:wrap;
+        }
+
+        .filter-search { flex:1; min-width:180px; position:relative; }
+        .filter-search i { position:absolute; left:11px; top:50%; transform:translateY(-50%); color:var(--muted); font-size:12px; }
+
+        .filter-search input {
+            width:100%;
+            background:rgba(13,26,18,0.85);
+            border:1px solid rgba(0,255,136,0.15);
+            border-radius:7px;
+            padding:8px 8px 8px 30px;
+            color:var(--text);
+            font-family:'Rajdhani',sans-serif; font-size:13px;
+            outline:none; transition:all 0.3s ease;
+        }
+
+        .filter-search input:focus { border-color:var(--accent); }
+        .filter-search input::placeholder { color:var(--muted); }
+
+        .filter-select select {
+            background:rgba(13,26,18,0.85);
+            border:1px solid rgba(0,255,136,0.15);
+            border-radius:7px;
+            padding:8px 12px;
+            color:var(--secondary);
+            font-family:'Rajdhani',sans-serif; font-size:12px;
+            outline:none; cursor:pointer;
+        }
+
+        .filter-count { font-size:11px; color:var(--muted); white-space:nowrap; }
+
+        .empty-row { text-align:center; padding:36px !important; color:var(--muted); }
+
+        /* ── RESPONSIVE ── */
+        @media (max-width:1100px) {
+            .admin-stats  { grid-template-columns:repeat(2,1fr); }
+            .charts-row   { grid-template-columns:1fr; }
+        }
+
+        @media (max-width:700px) {
+            .sidebar { display:none; }
+            .main-wrapper { margin-left:0; }
+            #bgCanvas { left:0; width:100vw; }
+            .admin-stats { grid-template-columns:repeat(2,1fr); }
+            .users-grid  { grid-template-columns:1fr; }
+        }
+    </style>
+</head>
+<body>
+
+<canvas id="bgCanvas"></canvas>
+
+<!-- ═══════════════ ADMIN SIDEBAR ═══════════════ -->
+<aside class="sidebar">
+
+    <div class="sidebar-logo">
+        <div class="logo-icon">
+            <!-- Red-tinted admin shield -->
+            <svg viewBox="0 0 36 36" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <defs>
+                    <filter id="aGlow" x="-50%" y="-50%" width="200%" height="200%">
+                        <feGaussianBlur stdDeviation="2" result="b"/>
+                        <feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge>
+                    </filter>
+                    <linearGradient id="aGrad" x1="18" y1="2" x2="18" y2="34" gradientUnits="userSpaceOnUse">
+                        <stop offset="0%"   stop-color="#ff6b7a"/>
+                        <stop offset="100%" stop-color="#cc1122"/>
+                    </linearGradient>
+                </defs>
+                <path d="M18 2 L32 7 L32 19 C32 27 26 32.5 18 34.5 C10 32.5 4 27 4 19 L4 7 Z"
+                      fill="rgba(255,71,87,0.08)"
+                      stroke="url(#aGrad)" stroke-width="1.4"
+                      filter="url(#aGlow)"/>
+                <path d="M18 5.5 L29 9.5 L29 19 C29 25.5 24.5 30 18 31.8 C11.5 30 7 25.5 7 19 L7 9.5 Z"
+                      fill="rgba(255,71,87,0.04)"
+                      stroke="rgba(255,100,120,0.28)" stroke-width="0.7"/>
+                <!-- Crown symbol for admin -->
+                <path d="M12 22 L12 18 L15 20 L18 16 L21 20 L24 18 L24 22 Z"
+                      fill="rgba(255,71,87,0.2)"
+                      stroke="#ff4757" stroke-width="1.1"
+                      stroke-linejoin="round"
+                      filter="url(#aGlow)"/>
+                <rect x="12" y="22" width="12" height="2.5" rx="1"
+                      fill="#ff4757" filter="url(#aGlow)"/>
+            </svg>
+        </div>
+        <div>
+            <span class="logo-main">PhishGuard</span>
+            <span class="logo-sub">ADMIN PANEL</span>
+        </div>
+    </div>
+
+    <nav class="sidebar-nav">
+        <a href="{{ url_for('admin_dashboard') }}"
+           class="nav-item active">
+            <i class="fas fa-gauge-high"></i><span>Overview</span>
+        </a>
+        <a href="{{ url_for('admin_users') }}"
+           class="nav-item">
+            <i class="fas fa-users"></i><span>All Users</span>
+        </a>
+        <div class="nav-divider"></div>
+        <a href="{{ url_for('dashboard') }}"
+           class="nav-item">
+            <i class="fas fa-arrow-left"></i><span>User View</span>
+        </a>
+        <a href="{{ url_for('logout') }}"
+           class="nav-item exit">
+            <i class="fas fa-right-from-bracket"></i><span>Logout</span>
+        </a>
+    </nav>
+
+    <div class="sidebar-footer">
+        <div class="admin-badge">
+            <i class="fas fa-user-shield"></i>
+            <div>
+                <p>{{ current_user.username }}</p>
+                <small>ADMINISTRATOR</small>
+            </div>
+        </div>
+    </div>
+
+</aside>
+
+<!-- ═══════════════ MAIN ═══════════════ -->
+<div class="main-wrapper">
+
+    <!-- Topbar -->
+    <header class="topbar">
+        <div class="topbar-left">
+            <h2 class="page-title">Control Center</h2>
+            <div class="admin-crown">
+                <i class="fas fa-user-shield"></i>
+                ADMINISTRATOR MODE
+            </div>
+        </div>
+        <div class="topbar-right">
+            <div class="topbar-user">
+                <div class="user-avatar">
+                    <i class="fas fa-user-shield"></i>
+                </div>
+                <div>
+                    <span class="user-name">{{ current_user.username }}</span>
+                    <span class="user-role">Administrator</span>
+                </div>
+            </div>
+            <a href="{{ url_for('logout') }}" class="btn-exit">
+                <i class="fas fa-right-from-bracket"></i> Exit
+            </a>
+        </div>
+    </header>
+
+    <main class="content">
+
+        <!-- Alert Banner -->
+        <div class="admin-alert">
+            <i class="fas fa-shield-halved"></i>
+            RESTRICTED ACCESS — ADMIN CONTROL CENTER — ALL ACTIONS ARE LOGGED
+            <span>{{ now if now else "Session Active" }}</span>
+        </div>
+
+        <!-- ── ADMIN STAT CARDS ── -->
+        <div class="admin-stats">
+
+            <div class="admin-stat-card glass-red">
+                <div class="astat-icon red">
+                    <i class="fas fa-users"></i>
+                </div>
+                <div>
+                    <p class="astat-label">Total Users</p>
+                    <p class="astat-value">{{ admin_stats.total_users }}</p>
+                    <p class="astat-sub">Registered accounts</p>
+                </div>
+            </div>
+
+            <div class="admin-stat-card glass-red">
+                <div class="astat-icon green">
+                    <i class="fas fa-chart-simple"></i>
+                </div>
+                <div>
+                    <p class="astat-label">Total Scans</p>
+                    <p class="astat-value">{{ admin_stats.total_scans }}</p>
+                    <p class="astat-sub">All users combined</p>
+                </div>
+            </div>
+
+            <div class="admin-stat-card glass-red">
+                <div class="astat-icon yellow">
+                    <i class="fas fa-skull-crossbones"></i>
+                </div>
+                <div>
+                    <p class="astat-label">Total Threats</p>
+                    <p class="astat-value">{{ admin_stats.total_threats }}</p>
+                    <p class="astat-sub">Non-safe detections</p>
+                </div>
+            </div>
+
+            <div class="admin-stat-card glass-red">
+                <div class="astat-icon blue">
+                    <i class="fas fa-trophy"></i>
+                </div>
+                <div>
+                    <p class="astat-label">Most Active</p>
+                    <p class="astat-value" style="font-size:14px">{{ admin_stats.most_active }}</p>
+                    <p class="astat-sub">Top scanner</p>
+                </div>
+            </div>
+
+        </div>
+
+        <!-- ── CHARTS ── -->
+        <div class="charts-row">
+
+            <!-- Donut -->
+            <div class="chart-card glass-red">
+                <h3 class="card-title">Threat Distribution</h3>
+                <div class="donut-wrap">
+                    <canvas id="adminDonut"></canvas>
+                </div>
+                <div>
+                    <div class="legend-row"><span class="dot green"></span><span>Safe</span><strong>{{ stats.safe }}</strong></div>
+                    <div class="legend-row"><span class="dot yellow"></span><span>Suspicious</span><strong>{{ stats.suspicious }}</strong></div>
+                    <div class="legend-row"><span class="dot orange"></span><span>High Risk</span><strong>{{ stats.high_risk }}</strong></div>
+                    <div class="legend-row"><span class="dot red-dot"></span><span>Malicious</span><strong>{{ stats.malicious }}</strong></div>
+                </div>
+            </div>
+
+            <!-- Trend -->
+            <div class="chart-card glass-red">
+                <div class="card-title-row">
+                    <h3 class="card-title" style="border:none;padding:0;margin:0">
+                        Global Threat Score Trend
+                    </h3>
+                    <span class="card-sub">All Users — Last 20 Scans</span>
+                </div>
+                <div class="trend-wrap">
+                    <canvas id="adminTrend"></canvas>
+                </div>
+            </div>
+
+        </div>
+
+        <!-- ── REGISTERED USERS ── -->
+        <div class="section-title">
+            <i class="fas fa-users"></i> Registered Users
+        </div>
+
+        <div class="users-grid">
+            {% for user in all_users %}
+            <div class="user-card glass">
+                <div class="user-card-avatar">
+                    {{ user.username[0].upper() }}
+                </div>
+                <div style="flex:1; min-width:0;">
+                    <p class="user-card-name">{{ user.username }}</p>
+                    <p class="user-card-email">{{ user.email }}</p>
+                    <p class="user-card-date">
+                        <i class="fas fa-clock" style="font-size:9px"></i>
+                        Joined {{ user.created_at }}
+                    </p>
+                </div>
+                <span class="user-card-badge {{ 'admin' if user.is_admin else 'user' }}">
+                    {{ 'ADMIN' if user.is_admin else 'USER' }}
+                </span>
+            </div>
+            {% else %}
+            <p style="color:var(--muted); font-size:12px;">No users registered yet.</p>
+            {% endfor %}
+        </div>
+
+        <!-- ── ALL SCANS TABLE ── -->
+        <div class="section-title">
+            <i class="fas fa-database"></i> All Scan Records
+        </div>
+
+        <!-- Filter bar -->
+        <div class="filter-bar">
+            <div class="filter-search">
+                <i class="fas fa-magnifying-glass"></i>
+                <input type="text" id="scanSearch"
+                       placeholder="Search by URL or user..."
+                       onkeyup="filterScans()"/>
+            </div>
+            <div class="filter-select">
+                <select id="riskFilter" onchange="filterScans()">
+                    <option value="all">All Risk Levels</option>
+                    <option value="Safe">Safe</option>
+                    <option value="Suspicious">Suspicious</option>
+                    <option value="High Risk">High Risk</option>
+                    <option value="Malicious">Malicious</option>
+                </select>
+            </div>
+            <div class="filter-select">
+                <select id="sortFilter" onchange="filterScans()">
+                    <option value="newest">Newest First</option>
+                    <option value="oldest">Oldest First</option>
+                    <option value="highest">Highest Score</option>
+                    <option value="lowest">Lowest Score</option>
+                </select>
+            </div>
+            <div class="filter-count">
+                Showing <span id="scanCount">{{ all_scans|length }}</span> records
+            </div>
+        </div>
+
+        <div class="table-card glass-red">
+            <table class="admin-table" id="adminTable">
+                <thead>
+                    <tr>
+                        <th>#</th>
+                        <th>User</th>
+                        <th>URL</th>
+                        <th>Score</th>
+                        <th>Risk</th>
+                        <th><i class="fas fa-circle-check" style="color:#00ff88"></i> Safe</th>
+                        <th><i class="fas fa-triangle-exclamation" style="color:#ffd93d"></i> Susp.</th>
+                        <th><i class="fas fa-skull-crossbones" style="color:#ff4757"></i> Mal.</th>
+                        <th>Scanned At</th>
+                        <th>Action</th>
+                    </tr>
+                </thead>
+                <tbody id="adminTableBody">
+                    {% for scan in all_scans %}
+                    <tr id="scan-row-{{ scan.id }}"
+                        data-url="{{ scan.url }}"
+                        data-user="{{ scan.username or 'Unknown' }}"
+                        data-risk="{{ scan.risk_level }}"
+                        data-score="{{ scan.score }}"
+                        data-time="{{ scan.scanned_at }}">
+                        <td>{{ loop.index }}</td>
+                        <td>
+                            <span style="color:var(--accent); font-size:11px;">
+                                {{ scan.username or '—' }}
+                            </span>
+                        </td>
+                        <td class="url-cell" title="{{ scan.url }}">
+                            {{ scan.url|truncate(35) }}
+                        </td>
+                        <td>
+                            <div class="score-pill {{ scan.risk_level|lower|replace(' ','-') }}">
+                                {{ scan.score }}
+                            </div>
+                        </td>
+                        <td>
+                            <span class="risk-badge {{ scan.risk_level|lower|replace(' ','-') }}">
+                                {{ scan.risk_level }}
+                            </span>
+                        </td>
+                        <td style="color:#00ff88">{{ scan.safe_count }}</td>
+                        <td style="color:#ffd93d">{{ scan.suspicious_count }}</td>
+                        <td style="color:#ff4757">{{ scan.malicious_count }}</td>
+                        <td class="time-cell">{{ scan.scanned_at }}</td>
+                        <td>
+                            <button class="btn-delete"
+                                    onclick="deleteScan({{ scan.id }}, this)">
+                                <i class="fas fa-trash"></i> Del
+                            </button>
+                        </td>
+                    </tr>
+                    {% else %}
+                    <tr>
+                        <td colspan="10" class="empty-row">
+                            <i class="fas fa-database"
+                               style="font-size:24px; display:block; margin-bottom:8px;"></i>
+                            No scan records found.
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+
+    </main>
+</div>
+
+<!-- Chart data from Flask -->
+<script>
+const trendScores = {{ trend_scores|tojson }};
+const donutData   = {
+    safe:       {{ stats.safe }},
+    suspicious: {{ stats.suspicious }},
+    high_risk:  {{ stats.high_risk }},
+    malicious:  {{ stats.malicious }}
+};
+</script>
+
+<script>
+// ── BACKGROUND CANVAS ────────────────────────────────────────
+const canvas = document.getElementById("bgCanvas");
+const ctx    = canvas.getContext("2d");
+function resize(){ canvas.width=window.innerWidth; canvas.height=window.innerHeight; }
+resize(); window.addEventListener("resize", resize);
+
+const circuits = Array.from({length:18}, ()=>{
+    const pts=[{x:Math.random()*window.innerWidth, y:Math.random()*window.innerHeight}];
+    for(let i=0;i<4;i++){
+        const l=pts[pts.length-1], h=Math.random()>0.5, d=Math.random()*85+30;
+        pts.push({x:h?l.x+(Math.random()>0.5?d:-d):l.x, y:h?l.y:l.y+(Math.random()>0.5?d:-d)});
+    }
+    return {pts, alpha:Math.random()*0.45+0.12, w:Math.random()>0.7?1.4:0.8,
+            dot:{p:Math.random(), s:Math.random()*0.004+0.002}};
+});
+
+const particles = Array.from({length:60}, ()=>({
+    x:Math.random()*window.innerWidth, y:Math.random()*window.innerHeight,
+    r:Math.random()*1.6+0.5, a:Math.random()*0.5+0.15,
+    dx:(Math.random()-0.5)*0.4, dy:(Math.random()-0.5)*0.4,
+    ph:Math.random()*Math.PI*2
+}));
+
+function tLen(p){let l=0;for(let i=1;i<p.length;i++){const dx=p[i].x-p[i-1].x,dy=p[i].y-p[i-1].y;l+=Math.sqrt(dx*dx+dy*dy);}return l;}
+function ptAt(p,t){let d=tLen(p)*t;for(let i=1;i<p.length;i++){const dx=p[i].x-p[i-1].x,dy=p[i].y-p[i-1].y,s=Math.sqrt(dx*dx+dy*dy);if(d<=s){const r=d/s;return{x:p[i-1].x+dx*r,y:p[i-1].y+dy*r};}d-=s;}return p[p.length-1];}
+
+function animate(t){
+    ctx.fillStyle="#040609"; ctx.fillRect(0,0,canvas.width,canvas.height);
+
+    // Red-tinted grid for admin
+    ctx.strokeStyle="rgba(255,71,87,0.07)"; ctx.lineWidth=0.5;
+    for(let x=0;x<canvas.width;x+=38){ctx.beginPath();ctx.moveTo(x,0);ctx.lineTo(x,canvas.height);ctx.stroke();}
+    for(let y=0;y<canvas.height;y+=38){ctx.beginPath();ctx.moveTo(0,y);ctx.lineTo(canvas.width,y);ctx.stroke();}
+
+    // Red circuits
+    circuits.forEach(c=>{
+        ctx.beginPath();ctx.moveTo(c.pts[0].x,c.pts[0].y);
+        for(let i=1;i<c.pts.length;i++)ctx.lineTo(c.pts[i].x,c.pts[i].y);
+        ctx.strokeStyle=`rgba(255,71,87,${c.alpha*0.7})`; ctx.lineWidth=c.w; ctx.stroke();
+        c.pts.forEach(pt=>{ctx.beginPath();ctx.arc(pt.x,pt.y,2,0,Math.PI*2);ctx.fillStyle=`rgba(255,71,87,${c.alpha*1.8})`;ctx.fill();});
+        c.dot.p+=c.dot.s; if(c.dot.p>1)c.dot.p=0;
+        const pos=ptAt(c.pts,c.dot.p);
+        ctx.beginPath();ctx.arc(pos.x,pos.y,3,0,Math.PI*2);
+        ctx.fillStyle="rgba(255,120,130,0.95)";ctx.shadowBlur=12;ctx.shadowColor="rgba(255,71,87,1)";ctx.fill();ctx.shadowBlur=0;
+    });
+
+    // Red particles
+    particles.forEach(p=>{
+        const a=p.a*(0.5+0.5*Math.sin(t*0.001+p.ph));
+        ctx.beginPath();ctx.arc(p.x,p.y,p.r,0,Math.PI*2);
+        ctx.fillStyle=`rgba(255,71,87,${a*0.6})`;ctx.shadowBlur=6;ctx.shadowColor="rgba(255,71,87,0.8)";ctx.fill();ctx.shadowBlur=0;
+        p.x+=p.dx; p.y+=p.dy;
+        if(p.x<0)p.x=canvas.width; if(p.x>canvas.width)p.x=0;
+        if(p.y<0)p.y=canvas.height; if(p.y>canvas.height)p.y=0;
+    });
+
+    requestAnimationFrame(animate);
+}
+requestAnimationFrame(animate);
+
+// ── CHARTS ────────────────────────────────────────────────────
+Chart.defaults.color       = "#3d6b50";
+Chart.defaults.font.family = "Rajdhani";
+Chart.defaults.font.size   = 11;
+
+// Donut
+new Chart(document.getElementById("adminDonut"), {
+    type: "doughnut",
+    data: {
+        labels: ["Safe","Suspicious","High Risk","Malicious"],
+        datasets:[{
+            data:[donutData.safe, donutData.suspicious, donutData.high_risk, donutData.malicious],
+            backgroundColor:["rgba(0,255,136,0.7)","rgba(255,217,61,0.7)","rgba(255,140,66,0.7)","rgba(255,71,87,0.7)"],
+            borderColor:["#00ff88","#ffd93d","#ff8c42","#ff4757"],
+            borderWidth:1.5, hoverOffset:5
+        }]
+    },
+    options:{
+        responsive:true, maintainAspectRatio:true, cutout:"68%",
+        plugins:{legend:{display:false}, tooltip:{callbacks:{label:ctx=>` ${ctx.label}: ${ctx.parsed}`}}}
+    }
+});
+
+// Trend
+new Chart(document.getElementById("adminTrend"), {
+    type:"line",
+    data:{
+        labels: trendScores.map((_,i)=>i+1),
+        datasets:[{
+            label:"Threat Score",
+            data: trendScores,
+            borderColor:"#ff4757",
+            backgroundColor:"rgba(255,71,87,0.08)",
+            borderWidth:2,
+            pointBackgroundColor:"#ff4757",
+            pointBorderColor:"#040609",
+            pointBorderWidth:2,
+            pointRadius:4,
+            pointHoverRadius:7,
+            fill:true, tension:0.4
+        }]
+    },
+    options:{
+        responsive:true, maintainAspectRatio:false,
+        scales:{
+            x:{grid:{color:"rgba(255,71,87,0.06)"}, ticks:{color:"#3d6b50"}},
+            y:{min:0, max:100, grid:{color:"rgba(255,71,87,0.06)"},
+               ticks:{color:"#3d6b50", stepSize:25}}
+        },
+        plugins:{legend:{display:false},
+                 tooltip:{callbacks:{label:ctx=>` Score: ${ctx.parsed.y}/100`}}}
+    }
+});
+
+// ── FILTER SCANS ─────────────────────────────────────────────
+const allRows = Array.from(document.querySelectorAll("#adminTableBody tr[data-url]"));
+
+function filterScans() {
+    const search = document.getElementById("scanSearch").value.toLowerCase();
+    const risk   = document.getElementById("riskFilter").value;
+    const sort   = document.getElementById("sortFilter").value;
+
+    let filtered = allRows.filter(r => {
+        const matchUrl  = r.dataset.url.toLowerCase().includes(search) ||
+                          r.dataset.user.toLowerCase().includes(search);
+        const matchRisk = risk === "all" || r.dataset.risk === risk;
+        return matchUrl && matchRisk;
+    });
+
+    filtered.sort((a,b) => {
+        if (sort==="newest")  return b.dataset.time.localeCompare(a.dataset.time);
+        if (sort==="oldest")  return a.dataset.time.localeCompare(b.dataset.time);
+        if (sort==="highest") return b.dataset.score - a.dataset.score;
+        if (sort==="lowest")  return a.dataset.score - b.dataset.score;
+    });
+
+    const tbody = document.getElementById("adminTableBody");
+    tbody.innerHTML = "";
+    if (filtered.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="10" class="empty-row">No results match your filters.</td></tr>`;
+    } else {
+        filtered.forEach((r,i) => { r.cells[0].textContent = i+1; tbody.appendChild(r); });
+    }
+    document.getElementById("scanCount").textContent = filtered.length;
+}
+
+// ── DELETE SCAN ───────────────────────────────────────────────
+async function deleteScan(scanId, btn) {
+    if (!confirm(`Delete scan #${scanId}? This cannot be undone.`)) return;
+
+    btn.disabled = true;
+    btn.innerHTML = `<i class="fas fa-spinner fa-spin"></i>`;
+
+    try {
+        const res = await fetch(`/admin/delete-scan/${scanId}`, { method:"POST" });
+        const data = await res.json();
+        if (data.success) {
+            const row = document.getElementById(`scan-row-${scanId}`);
+            row.style.transition = "opacity 0.4s ease";
+            row.style.opacity = "0";
+            setTimeout(() => {
+                row.remove();
+                // Update count
+                const count = document.getElementById("scanCount");
+                count.textContent = parseInt(count.textContent) - 1;
+            }, 400);
+        }
+    } catch(e) {
+        btn.disabled = false;
+        btn.innerHTML = `<i class="fas fa-trash"></i> Del`;
+        alert("Delete failed. Please try again.");
+    }
+}
+</script>
+
+</body>
+</html>
